@@ -4,7 +4,7 @@ layout: home
 
 hero:
   name: "vue3编译原理揭秘"
-  text: "揭秘title"
+  text: "揭秘title333"
   tagline: My great project tagline
   actions:
     - theme: brand

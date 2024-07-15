@@ -4,22 +4,21 @@ layout: home
 
 hero:
   name: "vue3编译原理揭秘"
-  text: "揭秘title333"
-  tagline: My great project tagline
+  tagline: 通过debug的方式带你搞清楚vue3中的编译黑魔法
   actions:
     - theme: brand
-      text: Markdown Examples
-      link: /markdown-examples
+      text: 立即开始
+      link: /guide/start-view-source-code
     - theme: alt
-      text: API Examples
-      link: /api-examples
+      text: 为什么要写这本书
+      link: /guide/why
 
 features:
-  - title: Feature A
-    details: Lorem ipsum dolor sit amet, consectetur adipiscing elit
-  - title: Feature B
-    details: Lorem ipsum dolor sit amet, consectetur adipiscing elit
-  - title: Feature C
-    details: Lorem ipsum dolor sit amet, consectetur adipiscing elit
+  - title: 问题驱动
+    details: 抛出一个你感兴趣的问题，通过这个问题带你揭开编译黑魔法的秘密
+  - title: 全程debug
+    details: 跟着本书的debug步骤，你也可以直接上手
+  - title: 超级详细
+    details: 本书的主要特点就是超级详细和通熟易懂
 ---
 

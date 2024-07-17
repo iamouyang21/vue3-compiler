@@ -5,6 +5,7 @@ export default defineConfig({
   title: "vue3编译原理揭秘",
   description: "通过debug的方式带你搞清楚vue3中的黑魔法",
   cleanUrls: true,
+  ignoreDeadLinks: true,
   themeConfig: {
     // https://vitepress.dev/reference/default-theme-config
     nav: [{ text: "本书交流群", link: "/guide/contact" }],

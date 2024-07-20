@@ -457,3 +457,6 @@ function setElementText(el, text) {
 
 在实验阶段的`Vue Vapor`中已经抛弃了虚拟DOM，更多关于`Vue Vapor`的内容可以查看我之前的文章： [没有虚拟DOM版本的vue（Vue Vapor）](https://mp.weixin.qq.com/s/SAWApng__kZOxsBvvjK0aQ)。根据vue团队成员[三咲智子](https://github.com/sxzz) 所透露未来将使用`<script vapor>`的方式去区分Vapor组件和目前的组件。
 ![vapor](/template/patchFlag/vapor.png){data-zoomable}
+
+
+[加入本书对应的「源码交流群」](/guide/contact)

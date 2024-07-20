@@ -413,3 +413,6 @@ if (el.composing) return;
   而在原生input上面使用v-model，是由编译后生成的`vModelText`自定义指令在`created`钩子函数中去监听原生input标签的input或者change事件。在事件回调函数中去手动调用`onUpdate:modelValue`回调函数，然后在回调函数中去更新v-model绑定的变量。
 
 
+
+
+[加入本书对应的「源码交流群」](/guide/contact)

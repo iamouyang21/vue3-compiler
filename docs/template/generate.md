@@ -436,3 +436,6 @@ function generate(ast) {
   - 调用push方法生成各个函数的右括号")"和右花括号"}"，生成最终的render函数
 
 
+
+
+[加入本书对应的「源码交流群」](/guide/contact)

@@ -606,3 +606,6 @@ if (ctx.helperImports.size > 0) {
 - 调用`ctx.s.prepend`方法生成完整的setup函数。
 
 
+
+
+[加入本书对应的「源码交流群」](/guide/contact)

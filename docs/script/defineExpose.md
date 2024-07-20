@@ -152,3 +152,6 @@ function getExposeProxy(instance) {
 - 执行`__expose`方法将子组件需要暴露的属性或者方法组成的对象赋值给子组件vue实例上的`exposed`属性，也就是`instance.exposed`。
 
 - 父组件使用ref访问子组件的`validate`方法，也就是访问`child.value.validate`。其实访问的就是上一步的`instance.exposed.validate`方法，最终访问的就是`defineExpose`宏函数中暴露的`validate`方法。
+
+
+[加入本书对应的「源码交流群」](/guide/contact)

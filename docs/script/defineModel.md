@@ -241,3 +241,6 @@ function useModel(props, name) {
 
   修改`defineModel`的返回值，就会更新父组件中`v-model`绑定的变量值。看着就像是子组件中直接修改了父组件的变量值，从表面上看着像是打破了vue的单向数据流。实则并不是那样的，虽然我们在代码中没有写过`emit`抛出事件的代码，但是在`defineModel`函数编译成的`useModel`函数中已经帮我们使用`emit`抛出事件了。所以并没有打破vue的单向数据流
 
+
+
+[加入本书对应的「源码交流群」](/guide/contact)

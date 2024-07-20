@@ -437,3 +437,6 @@ function rewriteSelector(id, selector) {
 在下一篇文章中我们会讲vue是如何给html元素增加自定义属性`data-v-x`。
 
 
+
+
+[加入本书对应的「源码交流群」](/guide/contact)

@@ -367,3 +367,6 @@ function setVarsOnNode(el: Node, vars) {
 我们的`<span>`标签在编译阶段由`color: v-bind(primaryColor);`编译成了css变量`color: var(--c845efc6-primaryColor)`。并且在运行时由于`useCssVars`函数的作用在根节点生成了css变量的定义`--c845efc6-primaryColor: red;`。由于css继承，所以span标签也继承了这个css变量的定义，所以span标签渲染到页面上的color值最终为`red`。
 
 
+
+
+[加入本书对应的「源码交流群」](/guide/contact)

@@ -397,3 +397,6 @@ function hostSetScopeId(el, id) {
 最后就是调用`setAttribute`方法给div标签设置自定义属性`data-v-x`。
 
 
+
+
+[加入本书对应的「源码交流群」](/guide/contact)

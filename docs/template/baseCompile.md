@@ -410,3 +410,6 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
 
 - 第四部分为由于已经拿到了和render函数的结构一模一样的`javascript AST抽象语法树`，只需要在`generate`函数中遍历`javascript AST抽象语法树`进行字符串拼接就可以得到`render`函数了。
 
+
+
+[加入本书对应的「源码交流群」](/guide/contact)

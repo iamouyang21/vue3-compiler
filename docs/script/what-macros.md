@@ -160,3 +160,6 @@
 
 如果想要在`vue`中使用更多的宏，可以使用 [vue macros](https://vue-macros.dev/zh-CN/)。这个库是用于在vue中探索更多的宏和语法糖，作者是vue的团队成员 [三咲智子](https://github.com/sxzz) 。
 
+
+
+[加入本书对应的「源码交流群」](/guide/contact)

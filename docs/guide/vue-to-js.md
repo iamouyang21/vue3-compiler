@@ -647,3 +647,6 @@ async function transformMain(code, filename, options, pluginContext, ssr, custom
 
 当浏览器执行到`import "/src/App.vue?vue&type=style&index=0&scoped=7a7a37b1&lang.css";`语句时，触发了加载模块操作，再次触发了`@vitejs/plugin-vue-jsx`中的`transform`钩子函数。此时由于有了`type=style`的`query`，所以在`transform`函数中会执行`transformStyle`函数，在`transformStyle`函数中同样也是调用`vue/compiler-sfc`的`compileStyleAsync`函数，根据第一步的`descriptor`对象将vue文件的`<style>`模块转换为编译后的css代码`code`字符串，至此编译style部分也讲完了。
 
+
+
+[加入本书对应的「源码交流群」](/guide/contact)

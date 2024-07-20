@@ -390,3 +390,6 @@ function traverseNode(node, context) {
 
 - 执行`nodeTransforms`数组中的`transformElement`转换函数，会返回一个回调函数。在回调函数中会调用`buildProps`函数，在`buildProps`函数中只有当node节点中有对应的指令才会执行`directiveTransforms`对象中对应的转换函数。比如当前node节点有v-model指令，才会去执行`transformModel`转换函数。v-model等指令也就被处理了。
 
+
+
+[加入本书对应的「源码交流群」](/guide/contact)

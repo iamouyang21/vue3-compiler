@@ -17,8 +17,8 @@ features:
   - title: 问题驱动
     details: 抛出一个你感兴趣的问题，通过这个问题带你揭开编译黑魔法的秘密
   - title: 全程debug
-    details: 跟着本书的debug步骤，你也可以直接上手
+    details: 跟着本书的debug步骤，你也将学会如何自己去debug源码
   - title: 超级详细
-    details: 本书的主要特点就是超级详细和通熟易懂
+    details: 超级详细，不漏过任何一个细节，而且内容还通熟易懂。
 ---
 

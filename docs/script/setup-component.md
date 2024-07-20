@@ -350,3 +350,6 @@ function isImportUsed(local, sfc) {
 在render函数中使用`$setup["Child"]`将子组件渲染到页面上去，而这个`$setup["Child"]`就是在setup函数中返回的`Child`属性，也就是`Child`子组件的引用。
 
 
+
+
+[加入本书对应的「源码交流群」](/guide/contact)

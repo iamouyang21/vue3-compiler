@@ -271,3 +271,6 @@ function createObjectProperty(key, value) {
 在`transformBind`转换函数的最后会根据属性名和属性值生成一个包含`key`、`value`键的props对象。`key`对应的就是属性名，`value`对应的就是属性值。后续生成render函数时只需要遍历所有的props，根据`key`和`value`字段进行字符串拼接就可以给div标签生成title属性了。
 
 
+
+
+[加入本书对应的「源码交流群」](/guide/contact)

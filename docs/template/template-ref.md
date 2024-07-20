@@ -204,3 +204,6 @@ const shallowUnwrapHandlers = {
 同样的在template中对ref变量进行赋值也无需使用`.value`，也是有个Proxy的set拦截，在set拦截中会自动帮我们去给ref变量的`.value`属性进行赋值。
 
 
+
+
+[加入本书对应的「源码交流群」](/guide/contact)

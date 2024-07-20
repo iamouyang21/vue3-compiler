@@ -450,3 +450,6 @@ genNode(ast.codegenNode, context);
   - 在render函数内直接使用`_hoisted_1`变量就可以表示这个h1标签。
 
 
+
+
+[加入本书对应的「源码交流群」](/guide/contact)

@@ -211,3 +211,6 @@ _createVNode(
 
 在`transform`函数中是调用`transformModel`函数处理`v-model`指令，这篇文章没有深入到`transformModel`函数源码内去讲解。如果大家对`transformModel`函数的源码感兴趣请在评论区留言或者给我发信息，我会在后面的文章安排上。
 
+
+
+[加入本书对应的「源码交流群」](/guide/contact)

@@ -574,3 +574,6 @@ function createSetupContext(instance) {
 
 大部分看着高大上的黑魔法其实都是编译时做的事情，**vue3中的像`defineEmits`这样的宏函数经过编译后其实还是我们熟悉的vue2的选项式API。**
 
+
+
+[加入本书对应的「源码交流群」](/guide/contact)

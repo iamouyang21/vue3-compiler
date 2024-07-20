@@ -456,3 +456,6 @@ function compileScript(sfc, options) {
 
   再使用`slice`方法并且传入开始位置和结束位置，从`<script setup>`模块的代码字符串中截取到`props`定义的字符串。然后将截取到的`props`定义的字符串拼接到`vue`组件对象的字符串中，这样`vue`组件对象中就有了一个`props`属性，这个`props`属性在`template`模版中可以直接使用。
 
+
+
+[加入本书对应的「源码交流群」](/guide/contact)

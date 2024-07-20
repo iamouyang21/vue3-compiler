@@ -1,12 +1,10 @@
 # 前言
-在上一篇 [掉了两根头发后，我悟了！vue3的scoped原来是这样避免样式污染（上）](https://mp.weixin.qq.com/s/d8d986AhBy0OJQ-EGtV73g) 文章中我们讲了使用scoped后，vue是如何给CSS选择器添加对应的属性选择器`[data-v-x]`。这篇文章我们来接着讲使用了scoped后，vue是如何给html增加自定义属性`data-v-x`。注：本文中使用的vue版本为`3.4.19`，`@vitejs/plugin-vue`的版本为`5.0.4`。
-
-关注公众号：【前端欧阳】，给自己一个进阶vue的机会
+在上一篇 [css上面的data-v-xxx](/style/scoped-style) 文章中我们讲了使用scoped后，vue是如何给CSS选择器添加对应的属性选择器`[data-v-x]`。这篇文章我们来接着讲使用了scoped后，vue是如何给html增加自定义属性`data-v-x`。
 
 # 看个demo
 我们先来看个demo，代码如下：
 
-```
+```vue
 <template>
 <div class="block">hello world</div>
 </template>
@@ -19,7 +17,7 @@ color: red;
 ```
 经过编译后，上面的demo代码就会变成下面这样：
 
-```
+```vue
 <template>
 <div data-v-c1c19b25 class="block">hello world</div>
 </template>
@@ -34,15 +32,15 @@ color: red;
 
 接下来我将通过debug的方式带你了解，vue使用了scoped后是如何给html增加自定义属性`data-v-x`。
 # `transformMain` 函数
-在 [通过debug搞清楚.vue文件怎么变成.js文件](https://mp.weixin.qq.com/s/0QfalimbwontX3UhSHMZng)文章中我们讲过了`transformMain` 函数的作用是将vue文件转换成js文件。
+在 [vue文件编译成js文件](/guide/vue-to-js)文章中我们讲过了`transformMain` 函数的作用是将vue文件转换成js文件。
 
 首先我们需要启动一个debug终端。这里以`vscode`举例，打开终端然后点击终端中的`+`号旁边的下拉箭头，在下拉中点击`Javascript Debug Terminal`就可以启动一个`debug`终端。
-![debug-terminal](https://img2024.cnblogs.com/blog/1217259/202403/1217259-20240312154207507-485382390.png)
+![debug-terminal](/common/debug-terminal.png){data-zoomable}
 
 接着我们需要给`transformMain` 函数打个断点，`transformMain` 函数的位置在`node_modules/@vitejs/plugin-vue/dist/index.mjs`。
 
 在debug终端执行`yarn dev`，在浏览器中打开对应的页面，比如：[http://localhost:5173/](http://localhost:5173/) 。此时断点将会停留在`transformMain` 函数中，在我们这个场景中简化后的`transformMain` 函数代码如下：
-```
+```js
 async function transformMain(code, filename, options) {
   const { descriptor } = createDescriptor(filename, code, options);
 
@@ -81,14 +79,14 @@ async function transformMain(code, filename, options) {
 }
 ```
 在debug终端来看看`transformMain`函数的入参code，如下图：
-![code](https://img2024.cnblogs.com/blog/1217259/202407/1217259-20240702213415979-1794882926.png)
+![code](/style/scoped-template/code.png){data-zoomable}
 
 从上图中可以看到入参code为vue文件的code代码字符串。
 
-在上一篇 [掉了两根头发后，我悟了！vue3的scoped原来是这样避免样式污染（上）](https://mp.weixin.qq.com/s/d8d986AhBy0OJQ-EGtV73g) 文章中我们讲过了`createDescriptor`函数会生成一个`descriptor`对象。而`descriptor`对象的id属性`descriptor.id`，就是根据vue文件的路径调用node的`createHash`加密函数生成的，也就是html标签上的自定义属性`data-v-x`中的`x`。
+在上一篇 [css上面的data-v-xxx](/style/scoped-style) 文章中我们讲过了`createDescriptor`函数会生成一个`descriptor`对象。而`descriptor`对象的id属性`descriptor.id`，就是根据vue文件的路径调用node的`createHash`加密函数生成的，也就是html标签上的自定义属性`data-v-x`中的`x`。
 
 `genTemplateCode`函数会生成编译后的render函数，如下图：
-![templateCode](https://img2024.cnblogs.com/blog/1217259/202407/1217259-20240702213432192-944020310.png)
+![templateCode](/style/scoped-template/templateCode.png){data-zoomable}
 
 从上图中可以看到在生成的render函数中，div标签对应的是`createElementBlock`方法，而在执行`createElementBlock`方法时并没有将`descriptor.id`传入进去。
 
@@ -99,7 +97,7 @@ async function transformMain(code, filename, options) {
 接着会执行`attachedProps.push`方法将一组键值对push到`attachedProps`数组中，key为`__scopeId`，值为`data-v-${descriptor.id}`。看到这里我想你应该已经猜到了，这里的`data-v-${descriptor.id}`就是给html标签上添加的自定义属性`data-v-x`。
 
 接着就是遍历`attachedProps`数组将里面存的键值对拼接到`output`数组中，代码如下：
-```
+```js
 output.push(
   `import _export_sfc from '${EXPORT_HELPER_ID}'`,
   `export default /*#__PURE__*/_export_sfc(_sfc_main, [${attachedProps
@@ -108,7 +106,7 @@ output.push(
 );
 ```
 最后就是执行`output.join("\n")`，使用换行符将`output`数组中的内容拼接起来就能得到vue文件编译后的js文件，如下图：
-![resolvedCode](https://img2024.cnblogs.com/blog/1217259/202407/1217259-20240702213445429-454517949.png)
+![resolvedCode](/style/scoped-template/resolvedCode.png){data-zoomable}
 
 从上图中可以看到编译后的js文件`export default`导出的是`_export_sfc`函数的执行结果，该函数接收两个参数。第一个参数为当前vue组件对象`_sfc_main`，第二个参数是由很多组键值对组成的数组。
 
@@ -119,7 +117,7 @@ output.push(
 第三组键值对的key为`__file`，值为当前vue文件的路径。
 # 编译后的js文件
 从前面我们知道编译后的js文件`export default`导出的是`_export_sfc`函数的执行结果，我们在浏览器中给`_export_sfc`函数打个断点。刷新页面，代码会走到断点中，`_export_sfc`函数代码如下：
-```
+```js
 function export_sfc(sfc, props) {
   const target = sfc.__vccOpts || sfc;
   for (const [key, val] of props) {
@@ -135,17 +133,17 @@ function export_sfc(sfc, props) {
 接着就是遍历传入的多组键值对，使用`target[key] = val`给vue组件对象上面额外添加三个属性，分别是`render`、`__scopeId`和`__file`。
 
 在控制台中来看看经过`export_sfc`函数处理后的vue组件对象是什么样的，如下图：
-![sfc](https://img2024.cnblogs.com/blog/1217259/202407/1217259-20240702213458789-951340769.png)
+![sfc](/style/scoped-template/sfc.png){data-zoomable}
 
 从上图中可以看到此时的vue组件对象中增加了很多属性，其中我们需要关注的是`__scopeId`属性，他的值就是给html增加自定义属性`data-v-x`。
 # 给render函数打断点
 前面我们讲过了在render函数中渲染div标签时是使用`_createElementBlock("div", _hoisted_1, "hello world")`，并且传入的参数中也并没有`data-v-x`。
 
 所以我们需要搞清楚到底是在哪里使用到`__scopeId`的呢？我们给render函数打一个断点，如下图：
-![render](https://img2024.cnblogs.com/blog/1217259/202407/1217259-20240702213514897-938689065.png)
+![render](/style/scoped-template/render.png){data-zoomable}
 
 刷新页面代码会走到render函数的断点中，将断点走进`_createElementBlock`函数中，在我们这个场景中简化后的`_createElementBlock`函数代码如下：
-```
+```js
 function createElementBlock(
   type,
   props,
@@ -170,7 +168,7 @@ function createElementBlock(
 从上面的代码可以看到`createElementBlock`并不是干活的地方，而是在里层先调用`createBaseVNode`函数，然后使用其结果再去调用`setupBlock`函数。
 
 将断点走进`createBaseVNode`函数，在我们这个场景中简化后的代码如下：
-```
+```js
 function createBaseVNode(type, props, children) {
   const vnode = {
     type,
@@ -189,10 +187,10 @@ function createBaseVNode(type, props, children) {
 `scopeId`属性的值是由一个全局变量`currentScopeId`赋值的，接下来我们需要搞清楚全局变量`currentScopeId`是如何被赋值的。
 # `renderComponentRoot`函数
 从Call Stack中可以看到render函数是由一个名为`renderComponentRoot`的函数调用的，如下图：
-![call-stack](https://img2024.cnblogs.com/blog/1217259/202407/1217259-20240702213532579-1762851657.png)
+![call-stack](/style/scoped-template/call-stack.png){data-zoomable}
 
 将断点走进`renderComponentRoot`函数，在我们这个场景中简化后的代码如下：
-```
+```js
 function renderComponentRoot(instance) {
   const { props, render, renderCache, data, setupState, ctx } = instance;
 
@@ -215,7 +213,7 @@ function renderComponentRoot(instance) {
 }
 ```
 从上面的代码可以看到`renderComponentRoot`函数的入参是一个vue实例`instance`，我们在控制台来看看`instance`是什么样的，如下图：
-![instance](https://img2024.cnblogs.com/blog/1217259/202407/1217259-20240702213546279-2053538893.png)
+![instance](/style/scoped-template/instance.png){data-zoomable}
 
 从上图可以看到vue实例`instance`对象上有很多我们熟悉的属性，比如`props`、`refs`等。
 
@@ -234,7 +232,7 @@ function renderComponentRoot(instance) {
 最后就是再次执行`setCurrentRenderingInstance`函数将全局维护的vue实例对象变量重置为上一次的vue实例对象。
 # `setCurrentRenderingInstance`函数
 接着将断点走进`setCurrentRenderingInstance`函数，代码如下：
-```
+```js
 let currentScopeId = null;
 let currentRenderingInstance = null;
 function setCurrentRenderingInstance(instance) {
@@ -251,7 +249,7 @@ function setCurrentRenderingInstance(instance) {
 前面讲过了在`renderComponentRoot`函数中会执行render函数，render函数会返回对应的虚拟DOM，然后将虚拟DOM赋值给变量`result`，最后`renderComponentRoot`函数会将变量`result`进行return返回。
 
 将断点走出`renderComponentRoot`函数，此时断点走到了执行`renderComponentRoot`函数的地方，也就是`componentUpdateFn`函数。在我们这个场景中简化后的`componentUpdateFn`函数代码如下：
-```
+```js
 const componentUpdateFn = () => {
   const subTree = (instance.subTree = renderComponentRoot(instance));
 
@@ -263,7 +261,7 @@ const componentUpdateFn = () => {
 这个`patch`函数相比你多多少少听过，他接收的前两个参数分别是：旧的虚拟DOM、新的虚拟DOM。由于我们这里是初次加载没有旧的虚拟DOM，所以调用`patch`函数传入的第一个参数是null。第二个参数是render函数生成的新的虚拟DOM。
 # `patch`函数
 将断点走进`patch`函数，在我们这个场景中简化后的`patch`函数代码如下：
-```
+```js
 const patch = (
   n1,
   n2,
@@ -291,7 +289,7 @@ const patch = (
 从上面的代码可以看到在`patch`函数中主要是执行了`processElement`函数，参数也是透传给了`processElement`函数。
 
 接着将断点走进`processElement`函数，在我们这个场景中简化后的`processElement`函数代码如下：
-```
+```js
 const processElement = (
   n1,
   n2,
@@ -320,7 +318,7 @@ const processElement = (
 从上面的代码可以看到如果`n1 == null`也就是当前没有旧的虚拟DOM，就会去执行`mountElement`函数将新的虚拟DOM挂载到真实DOM上。很明显我们这里`n1`的值确实是`null`，所以代码会走到`mountElement`函数中。
 # `mountElement`函数
 接着将断点走进`mountElement`函数，在我们这个场景中简化后的`mountElement`函数代码如下：
-```
+```js
 const mountElement = (
   vnode,
   container,
@@ -346,7 +344,7 @@ const mountElement = (
 接下来我们来看看上面这三个函数。
 
 先将断点走进`hostCreateElement`函数，在我们这个场景中简化后的代码如下：
-```
+```js
 function hostCreateElement(tag) {
   const el = document.createElement(tag, undefined);
   return el;
@@ -355,7 +353,7 @@ function hostCreateElement(tag) {
 由于传入的`tag`变量的值是`div`，所以此时`hostCreateElement`函数就是调用了`document.createElement`方法生成一个`div`标签，并且将其return返回。
 
 经过`hostCreateElement`函数的处理后，已经生成了一个`div`标签，并且将其赋值给变量`el`。接着将断点走进`hostSetElementText`函数，代码如下：
-```
+```js
 function hostSetElementText(el, text) {
   el.textContent = text;
 }
@@ -365,7 +363,7 @@ function hostSetElementText(el, text) {
 这里的`textContent`属性你可能用的比较少，他的作用和`innerText`差不多。给`textContent`属性赋值就是设置元素的文字内容，在这里就是将div标签的文本设置为`hello world`。
 
 经过`hostSetElementText`函数的处理后生成的div标签已经有了文本节点`hello world`。接着将断点走进`setScopeId`函数，在我们这个场景中简化后的代码如下：
-```
+```js
 const setScopeId = (el, vnode, scopeId) => {
   if (scopeId) {
     hostSetScopeId(el, scopeId);
@@ -398,6 +396,4 @@ function hostSetScopeId(el, id) {
 
 最后就是调用`setAttribute`方法给div标签设置自定义属性`data-v-x`。
 
-关注公众号：【前端欧阳】，给自己一个进阶vue的机会
 
-![](https://img2024.cnblogs.com/blog/1217259/202406/1217259-20240606112202286-1547217900.jpg)

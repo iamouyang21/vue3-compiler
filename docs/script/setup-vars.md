@@ -1,10 +1,9 @@
 # 前言
-我们每天写vue3代码的时候都会使用到setup语法糖，那你知道为什么setup语法糖中的顶层绑定可以在template中直接使用的呢？setup语法糖是如何编译成setup函数的呢？本文将围绕这些问题带你揭开setup语法糖的神秘面纱。注：本文中使用的vue版本为`3.4.19`。
+我们每天写vue3代码的时候都会使用到setup语法糖，那你知道为什么setup语法糖中的顶层绑定可以在template中直接使用的呢？setup语法糖是如何编译成setup函数的呢？本文将围绕这些问题带你揭开setup语法糖的神秘面纱。
 
-关注公众号：【前端欧阳】，给自己一个进阶vue的机会
 # 看个demo
 看个简单的demo，代码如下：
-```
+```vue
 <template>
   <h1>{{ msg }}</h1>
   <h2>{{ format(msg) }}</h2>
@@ -38,7 +37,7 @@ if (msg.value) {
 **但是你有没有想过为什么`<script setup>`中的顶层绑定就能在template中使用，而像`innerContent`这种非顶层绑定就不能在template中使用呢？**
 
 我们先来看看上面的代码编译后的样子，在之前的文章中已经讲过很多次如何在浏览器中查看编译后的vue文件，这篇文章就不赘述了。编译后的代码如下：
-```
+```js
 import { defineComponent as _defineComponent } from "/node_modules/.vite/deps/vue.js?v=23bfe016";
 import { ref } from "/node_modules/.vite/deps/vue.js?v=23bfe016";
 import Child from "/src/components/setupDemo2/child.vue";
@@ -92,21 +91,21 @@ setup函数的参数有两个，第一个参数为组件的 `props`。第二个
 
 `format`也是一个**访问器属性**，他只拥有`get` ，调用`format`函数时会走进`get`中。由于他没有`set`，所以不能给`format`函数重新赋值。其实这个也很容易理解，因为`format`函数是从`util.js`文件中import导入的，当然不能给他重新赋值。
 
-至于在template中是怎么拿到`setup`函数返回的对象可以看我的另外一篇文章： [Vue 3 的 setup语法糖到底是什么东西？](https://mp.weixin.qq.com/s/g_kkXZbKLCdlyP-oLaolcQ)
+至于在template中是怎么拿到`setup`函数返回的对象可以看我的另外一篇文章： [setup函数](/script/what-setup)
 
 **看到这里有的小伙伴会有疑问了，不是还有一句`import { ref } from "vue"`也是顶层绑定，为什么里面的`ref`没有在setup函数中使用return暴露出去呢？还有在return对象中是如何将`title`、`format`识别为访问器属性呢？**
 
 在接下来的文章中我会逐一解答这些问题。
 # `compileScript`函数
-在之前的 [通过debug搞清楚.vue文件怎么变成.js文件](https://mp.weixin.qq.com/s/0QfalimbwontX3UhSHMZng)文章中已经讲过了vue的script模块中的内容是由`@vue/compiler-sfc`包中的`compileScript`函数处理的，当然你没看过那篇文章也不会影响这篇文章的阅读。
+在之前的 [vue文件编译成js文件](/guide/vue-to-js)文章中已经讲过了vue的script模块中的内容是由`@vue/compiler-sfc`包中的`compileScript`函数处理的。
 
 首先我们需要启动一个debug终端。这里以`vscode`举例，打开终端然后点击终端中的`+`号旁边的下拉箭头，在下拉中点击`Javascript Debug Terminal`就可以启动一个`debug`终端。
-![debug-terminal](https://img2024.cnblogs.com/blog/1217259/202403/1217259-20240312154207507-485382390.png)
+![debug-terminal](/common/debug-terminal.png){data-zoomable}
 
 然后在`node_modules`中找到`vue/compiler-sfc`包的`compileScript`函数打上断点，`compileScript`函数位置在`/node_modules/@vue/compiler-sfc/dist/compiler-sfc.cjs.js`。接下来我们先看看简化后的`compileScript`函数源码。
 ## 简化后的`compileScript`函数
 在`debug`终端上面执行`yarn dev`后在浏览器中打开对应的页面，比如：[http://localhost:5173/](http://localhost:5173/) 。此时断点就会走到`compileScript`函数中，在我们这个场景中简化后的`compileScript`函数代码如下：
-```
+```js
 function compileScript(sfc, options) {
   // ---- 第一部分 ----
   // 根据<script setup>中的内容生成一个ctx上下文对象
@@ -254,14 +253,14 @@ ${exposeCall}`
 }
 
 ```
-首先我们来看看`compileScript`函数的第一个参数`sfc`对象，在之前的文章 [vue文件是如何编译为js文件](https://mp.weixin.qq.com/s/0QfalimbwontX3UhSHMZng) 中我们已经讲过了`sfc`是一个`descriptor`对象，`descriptor`对象是由vue文件编译来的。
+首先我们来看看`compileScript`函数的第一个参数`sfc`对象，在之前的文章 [vue文件编译成js文件](/guide/vue-to-js) 中我们已经讲过了`sfc`是一个`descriptor`对象，`descriptor`对象是由vue文件编译来的。
 
 `descriptor`对象拥有template属性、scriptSetup属性、style属性，分别对应vue文件的`<template>`模块、`<script setup>`模块、`<style>`模块。
 
 在我们这个场景只关注`scriptSetup`属性，`sfc.scriptSetup.content`的值就是`<script setup>`模块中`code`代码字符串，
 
 `sfc.source`的值就是`vue`文件中的源代码code字符串。`sfc.scriptSetup.loc.start.offset`为`<script setup>`中内容开始位置，`sfc.scriptSetup.loc.end.offset`为`<script setup>`中内容结束位置。详情查看下图：
-![sfc](https://img2024.cnblogs.com/blog/1217259/202406/1217259-20240613111634565-255129613.png)
+![sfc](/script/setup-vars/sfc.png){data-zoomable}
 
 
 我们再来看`compileScript`函数中的内容，在`compileScript`函数中包含了从`<script setup>`语法糖到setup函数的完整流程。乍一看可能比较难以理解，所以我将其分为七块。
@@ -283,7 +282,7 @@ ${exposeCall}`
 在接下来的文章中我将逐个分析这七块的内容。
 ## 生成ctx上下文对象
 我们来看第一块的代码，如下：
-```
+```js
 // 根据<script setup>中的内容生成一个ctx上下文对象
 // 在ctx上下文对象中拥有一些属性和方法
 const ctx = new ScriptCompileContext(sfc, options);
@@ -296,7 +295,7 @@ const endOffset = ctx.endOffset;
 // script setup中的内容编译成的AST抽象语法树
 const scriptSetupAst = ctx.scriptSetupAst;
 ```
-在这一块的代码中主要做了一件事，使用`ScriptCompileContext`构造函数new了一个ctx上下文对象。在之前的 [为什么defineProps宏函数不需要从vue中import导入？](https://mp.weixin.qq.com/s/iZ16rACWcWpbZeT4bgheRA)文章中我们已经讲过了`ScriptCompileContext`构造函数里面的具体代码，这篇文章就不赘述了。
+在这一块的代码中主要做了一件事，使用`ScriptCompileContext`构造函数new了一个ctx上下文对象。在之前的 [defineProps](/script/defineProps)文章中我们已经讲过了`ScriptCompileContext`构造函数里面的具体代码，这篇文章就不赘述了。
 
 本文只会讲用到的`ScriptCompileContext`类中的`startOffset`、`endOffset`、`scriptSetupAst`、`userImports`、`helperImports`、`bindingMetadata`、`s`等属性。
 
@@ -317,19 +316,19 @@ const scriptSetupAst = ctx.scriptSetupAst;
 `MagicString`对象中拥有`toString`、`remove`、`prependLeft`、`appendRight`等方法。`s.toString`用于生成返回的字符串，我们来举几个例子看看这几个方法你就明白了。
 
 `s.remove( start, end )`用于删除从开始到结束的字符串：
-```
+```js
 const s = new MagicString('hello word');
 s.remove(0, 6);
 s.toString(); // 'word'
 ```
 `s.prependLeft( index, content )`用于在指定`index`的前面插入字符串：
-```
+```js
 const s = new MagicString('hello word');
 s.prependLeft(5, 'xx');
 s.toString(); // 'helloxx word'
 ```
 `s.appendRight( index, content )`用于在指定`index`的后面插入字符串：
-```
+```js
 const s = new MagicString('hello word');
 s.appendRight(5, 'xx');
 s.toString(); // 'helloxx word'
@@ -337,7 +336,7 @@ s.toString(); // 'helloxx word'
 除了上面说的那几个属性，在这里定义了一个`setupBindings`变量。初始值是一个空对象，用于存储顶层声明的变量、函数等。
 ## 遍历`<script setup>`body中的内容
 将断点走到第二部分，代码如下：
-```
+```js
 for (const node of scriptSetupAst.body) {
   if (node.type === "ImportDeclaration") {
     // ...省略
@@ -366,14 +365,14 @@ for (const node of scriptSetupAst.body) {
 }
 ```
 在这一部分的代码中使用for循环遍历了两次`scriptSetupAst.body`，`scriptSetupAst.body`为script中的代码对应的AST抽象语法树中body的内容，如下图：
-![body](https://img2024.cnblogs.com/blog/1217259/202406/1217259-20240613111649269-1037742457.png)
+![body](/script/setup-vars/body.png){data-zoomable}
 
 从上图中可以看到`scriptSetupAst.body`数组有6项，分别对应的是script模块中的6块代码。
 
 第一个for循环中使用if判断`node.type === "ImportDeclaration"`，也就是判断是不是import语句。如果是import语句，那么import的内容肯定是顶层绑定，需要将import导入的内容存储到`ctx.userImports`对象中。注：后面会专门写一篇文章来讲如何收集所有的import导入。
 
 通过这个for循环已经将所有的import导入收集到了`ctx.userImports`对象中了，在debug终端看看此时的`ctx.userImports`，如下图：
-![userImports](https://img2024.cnblogs.com/blog/1217259/202406/1217259-20240613111704978-580065001.png)
+![userImports](/script/setup-vars/userImports.png){data-zoomable}
 
 从上图中可以看到在`ctx.userImports`中收集了三个import导入，分别是`Child`组件、`format`函数、`ref`函数。
 
@@ -386,12 +385,12 @@ for (const node of scriptSetupAst.body) {
 从前面的`scriptSetupAst.body`图中可以看到if模块的type为`IfStatement`，明显不属于上面的这四种类型，所以不会执行`walkDeclaration`函数将里面的`innerContent`变量收集起来后面再塞到return对象中。**这也就解释了为什么非顶层绑定不能在template中直接使用。**
 
 我们在debug终端来看看执行完第二个for循环后`setupBindings`对象是什么样的，如下图：
-![setupBindings](https://img2024.cnblogs.com/blog/1217259/202406/1217259-20240613111722976-1956494178.png)
+![setupBindings](/script/setup-vars/setupBindings.png){data-zoomable}
 
 从上图中可以看到在`setupBindings`对象中收集`msg`和`title`这两个顶层变量。其中的`setup-ref`表示当前变量是一个ref定义的变量，`setup-let`表示当前变量是一个let定义的变量。
 ## 移除template模块和style模块
 接着将断点走到第三部分，代码如下：
-```
+```js
 ctx.s.remove(0, startOffset);
 ctx.s.remove(endOffset, source.length);
 ```
@@ -402,17 +401,17 @@ ctx.s.remove(endOffset, source.length);
 `ctx.s.remove(endOffset, source.length)`的作用是：移除style中的内容和script的结束标签。
 
 我们在debug终端看看执行这两个`remove`方法之前的code代码字符串是什么样的，如下图：
-![before-remove](https://img2024.cnblogs.com/blog/1217259/202406/1217259-20240613111740019-476160701.png)
+![before-remove](/script/setup-vars/before-remove.png){data-zoomable}
 
 从上图中可以看到此时的code代码字符串和我们源代码差不多，唯一的区别就是那几个import导入已经被提取到script标签外面去了（这个是在前面第一个for循环处理import导入的时候处理的）。
 
 将断点走到执行完这两个remove方法之后，在debug终端看看此时的code代码字符串，如下图：
-![after-remove](https://img2024.cnblogs.com/blog/1217259/202406/1217259-20240613111755182-217186012.png)
+![after-remove](/script/setup-vars/after-remove.png){data-zoomable}
 
 从上图中可以看到执行这两个`remove`方法后template模块、style模块（虽然本文demo中没有写style模块）、script开始标签、script结束标签都已经被删除了。唯一剩下的就是script模块中的内容，还有之前提出去的那几个import导入。
 ## 将顶层绑定的元数据存储到`ctx.bindingMetadata`
 接着将断点走到第四部分，代码如下：
-```
+```js
 for (const [key, { isType, imported, source: source2 }] of Object.entries(
   ctx.userImports
 )) {
@@ -448,15 +447,15 @@ if (destructureElements.length) {
 答案是setup的return的对象有时会直接返回顶层变量（比如demo中的`msg`常量）。有时只会返回变量的访问器属性 get（比如demo中的`format`函数）。有时会返回变量的访问器属性 get和set（比如demo中的`title`变量）。所以才需要一个`ctx.bindingMetadata`对象来存储这些顶层绑定的元数据。
 
 将断点走到执行完这两个for循环的地方，在debug终端来看看此时收集的`ctx.bindingMetadata`对象是什么样的，如下图：
-![bindingMetadata](https://img2024.cnblogs.com/blog/1217259/202406/1217259-20240613111819770-690019802.png)
+![bindingMetadata](/script/setup-vars/bindingMetadata.png){data-zoomable}
 
 
 最后一块代码也很简单进行字符串拼接生成setup函数的参数，第一个参数为组件的props、第二个参数为`expose`方法组成的对象。如下图：
-![args](https://img2024.cnblogs.com/blog/1217259/202406/1217259-20240613111833095-655972299.png)
+![args](/script/setup-vars/args.png){data-zoomable}
 
 ## 生成return对象
 接着将断点走到第五部分，代码如下：
-```
+```js
 let returned;
 const allBindings = {
   ...setupBindings,
@@ -504,12 +503,12 @@ ctx.s.appendRight(
 后面生成setup函数的return对象就是通过遍历这个`allBindings`对象实现的。这也就解释了为什么从vue中import导入的ref函数也是顶层绑定，为什么他没有被setup函数返回。因为只有在template中使用的import导入顶层绑定才会被setup函数返回。
 
 将断点走到遍历`ctx.userImports`对象之后，在debug终端来看看此时的`allBindings`对象是什么样的，如下图：
-![allBindings](https://img2024.cnblogs.com/blog/1217259/202406/1217259-20240613111848473-1485719672.png)
+![allBindings](/script/setup-vars/allBindings.png){data-zoomable}
 
 从上图中可以看到此时的`allBindings`对象中存了四个需要return的顶层绑定。
 
 接着就是执行for循环遍历`allBindings`对象生成return对象的字符串，这循环中有三个if判断条件。我们先来看第一个，代码如下：
-```
+```js
 if (
   allBindings[key] === true &&
   ctx.userImports[key].source !== "vue" &&
@@ -517,11 +516,11 @@ if (
 ) {
   returned += `get ${key}() { return ${key} }, `;
 }
-```
+```js
 if条件判断是：如果当前import导入不是从vue中，并且也不是import导入一个vue组件。那么就给return一个只拥有get的访问器属性，对应我们demo中的就是`import { format } from "./util.js"`中的`format`函数。
 
 我们再来看第二个else if判断，代码如下：
-```
+```js
 else if (ctx.bindingMetadata[key] === "setup-let") {
   const setArg = key === "v" ? `_v` : `v`;
   returned += `get ${key}() { return ${key} }, set ${key}(${setArg}) { ${key} = ${setArg} }, `;
@@ -530,7 +529,7 @@ else if (ctx.bindingMetadata[key] === "setup-let") {
 这个else if条件判断是：如果当前顶层绑定是一个let定义的变量。那么就给return一个同时拥有get和set的访问器属性，对应我们demo中的就是`let title"`变量。
 
 最后就是else，代码如下：
-```
+```js
 else {
   returned += `${key}, `;
 }
@@ -538,19 +537,19 @@ else {
 这个else中就是普通的数据属性了，对应我们demo中的就是`msg`变量和`Child`组件。
 
 将断点走到生成return对象之后，在debug终端来看看此时生成的return对象是什么样的，如下图：
-![returned](https://img2024.cnblogs.com/blog/1217259/202406/1217259-20240613111901825-714881611.png)
+![returned](/script/setup-vars/returned.png){data-zoomable}
 
 从上图中可以看到此时已经生成了return对象啦。
 
 前面我们只生成了return对象，但是还没将其插入到要生成的code字符串中，所以需要执行`ctx.s.appendRight`方法在末尾插入return的代码。
 
 将断点走到执行完`ctx.s.appendRight`方法后，在debug终端来看看此时的code代码字符串是什么样的，如下图：
-![after-returned](https://img2024.cnblogs.com/blog/1217259/202406/1217259-20240613111918013-1149706579.png)
+![after-returned](/script/setup-vars/after-returned.png){data-zoomable}
 
 从上图中可以看到此时的code代码字符串中多了一块return的代码。
 ## 生成setup函数定义
 接着将断点走到第六部分，代码如下：
-```
+```js
 ctx.s.prependLeft(
   startOffset,
   `
@@ -563,17 +562,17 @@ ${exposeCall}`
 ctx.s.appendRight(endOffset, `})`);
 ```
 这部分的代码很简单，调用`ctx.s.prependLeft`方法从左边插入一串代码。插入的这串代码就是简单的字符串拼接，我们在debug终端来看看要插入的代码是什么样的，如下图：
-![sfc-main](https://img2024.cnblogs.com/blog/1217259/202406/1217259-20240613111936273-1804990473.png)
+![sfc-main](/script/setup-vars/sfc-main.png){data-zoomable}
 
 是不是觉得上面这块需要插入的代码看着很熟悉，他就是编译后的`_sfc_main`对象除去setup函数内容的部分。将断点走到`ctx.s.appendRight`方法执行之后，再来看看此时的code代码字符串是什么样的，如下图：
-![setup-fn](https://img2024.cnblogs.com/blog/1217259/202406/1217259-20240613111953580-1182809450.png)
+![setup-fn](/script/setup-vars/setup-fn.png){data-zoomable}
 
 从上图中可以看到此时的setup函数基本已经生成完了。
 ## 插入import vue语句
 上一步生成的code代码字符串其实还有一个问题，在代码中使用了`_defineComponent`函数，但是没有从任何地方去import导入。
 
 第七块的代码就会生成缺少的import导入，代码如下：
-```
+```js
 if (ctx.helperImports.size > 0) {
   ctx.s.prepend(
     `import { ${[...ctx.helperImports]
@@ -584,12 +583,12 @@ if (ctx.helperImports.size > 0) {
 }
 ```
 将断点走到`ctx.s.prepend`函数执行后，再来看看此时的code代码字符串，如下图：
-![full-code](https://img2024.cnblogs.com/blog/1217259/202406/1217259-20240613112011236-874018964.png)
+![full-code](/script/setup-vars/full-code.png){data-zoomable}
 
 从上图中可以看到已经生成了完整的setup函数啦。
 # 总结
 整个流程图如下：
-![full-progress](https://img2024.cnblogs.com/blog/1217259/202406/1217259-20240613112026405-1728987318.png)
+![full-progress](/script/setup-vars/full-progress.png){data-zoomable}
 
 
 - 遍历`<script setup>`中的代码将所有的import导入收集到`ctx.userImports`对象中。
@@ -606,6 +605,4 @@ if (ctx.helperImports.size > 0) {
 
 - 调用`ctx.s.prepend`方法生成完整的setup函数。
 
-关注公众号：【前端欧阳】，给自己一个进阶vue的机会
 
-![](https://img2024.cnblogs.com/blog/1217259/202406/1217259-20240606112202286-1547217900.jpg)

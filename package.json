@@ -15,5 +15,8 @@
   },
   "author": "ouyangcoder",
   "license": "ISC",
-  "description": ""
+  "description": "",
+  "dependencies": {
+    "medium-zoom": "^1.1.0"
+  }
 }

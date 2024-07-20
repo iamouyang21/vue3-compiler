@@ -1,35 +1,9 @@
 # 前言
-最近有粉丝找到我，说被面试官给问懵了。
-
-- 粉丝：面试官上来就问“**一个vue文件是如何渲染成浏览器上面的真实DOM？**”，当时还挺窃喜这题真简单。就简单说了一下先是编译成render函数、然后根据render函数生成虚拟DOM，最后就是根据虚拟DOM生成真实DOM。按照正常套路面试官接着会问vue响应式原理和diff算法，结果面试官不讲武德问了我“**那render函数又是怎么生成的呢？**”。
-
-- 我：之前写过一篇 [看不懂来打我，vue3如何将template编译成render函数](https://mp.weixin.qq.com/s/OM_xBi2xci4Wh2ebCT_G1A) 文章专门讲过这个吖。
-
-- 粉丝：我就是按照你文章回答的面试官，底层其实是调用的一个叫`baseCompile`的函数。在`baseCompile`函数中主要有三部分，执行`baseParse`函数将template模版转换成`模版AST抽象语法树`，接着执行`transform`函数处理掉vue内置的指令和语法糖就可以得到`javascript AST抽象语法树`，最后就是执行`generate`函数递归遍历`javascript AST抽象语法树`进行字符串拼接就可以生成render函数。当时在想这回算是稳了，结果跟着就翻车了。
-
-- 粉丝：面试官接着又让我讲“**`transform`函数内具体是如何处理vue内置的v-for、v-model等指令？**”，你的文章中没有具体讲过这个吖，我只有说不知道。面试官接着又问：**`generate`函数是如何进行字符串拼接得到的render函数呢？**，我还是回答的不知道。
-
-- 我：我的锅，接下来就先安排一篇文章来讲讲**`transform`函数内具体是如何处理vue内置的v-for、v-model等指令？**。
-# 先来看个流程图
-先来看一下我画的`transform`函数执行流程图，让你对整个流程有个大概的印象，后面的内容看着就不费劲了。如下图：
-![full-progress](https://img2024.cnblogs.com/blog/1217259/202404/1217259-20240417230849965-585996762.png)
-
-从上面的流程图可以看到`transform`函数的执行过程主要分为下面这几步：
-- 在`transform`函数中调用`createTransformContext`函数生成上下文对象。在上下文对象中存储了当前正在转换的node节点的信息，后面的`traverseNode`、`traverseChildren`、`nodeTransforms`数组中的转换函数、`directiveTransforms`对象中的转换函数都会依赖这个上下文对象。
-
-- 然后执行`traverseNode`函数，`traverseNode`函数是一个典型的洋葱模型。第一次执行`traverseNode`函数的时候会进入洋葱模型的第一层，先将`nodeTransforms`数组中的转换函数全部执行一遍，对第一层的node节点进行第一次转换，将转换函数返回的回调函数存到第一层的`exitFns`数组中。经过第一次转换后v-for等指令已经被初次处理了。
-
-- 然后执行`traverseChildren`函数，在`traverseChildren`函数中对当前node节点的子节点执行`traverseNode`函数。此时就会进入洋葱模型的第二层，和上一步一样会将`nodeTransforms`数组中的转换函数全部执行一遍，对第二层的node节点进行第一次转换，将转换函数返回的回调函数存到第二层的`exitFns`数组中。
-
-- 假如第二层的node节点已经没有了子节点，洋葱模型就会从“进入阶段”变成“出去阶段”。将第二层的`exitFns`数组中存的回调函数全部执行一遍，对node节点进行第二次转换，然后出去到第一层的洋葱模型。经过第二次转换后v-for等指令已经被完全处理了。
-
-- 同样将第一层中的`exitFns`数组中存的回调函数全部执行一遍，由于此时第二层的node节点已经全部处理完了，所以在`exitFns`数组中存的回调函数中就可以根据子节点的情况来处理父节点。
-
-- 执行`nodeTransforms`数组中的`transformElement`转换函数，会返回一个回调函数。在回调函数中会调用`buildProps`函数，在`buildProps`函数中只有当node节点中有对应的指令才会执行`directiveTransforms`对象中对应的转换函数。比如当前node节点有v-model指令，才会去执行`transformModel`转换函数。v-model等指令也就被处理了。
+在[baseCompile函数](/template/baseCompile) 文章中讲了v-model、v-for等指令是由`transform`函数处理的，但是我们没有深入到`transform`函数内部去看他具体是怎么处理的。这篇文章我们深入到`transform`函数内，来看看具体是如何处理vue内置的v-for、v-model等指令？
 
 # 举个例子
 还是同样的套路，我们通过debug一个简单的demo来带你搞清楚`transform`函数内具体是如何处理vue内置的v-for、v-model等指令。demo代码如下：
-```
+```vue
 <template>
   <div>
     <input v-for="item in msgList" :key="item.id" v-model="item.value" />
@@ -59,17 +33,17 @@ const title = ref("hello word");
 ```
 在上面的代码中，我们给input标签使用了v-for和v-model指令，还渲染了一个p标签。p标签中的内容由`foo`变量、`bar`字符串、`baz`变量拼接而来的。
 
-我们在上一篇 [看不懂来打我，vue3如何将template编译成render函数](https://mp.weixin.qq.com/s/OM_xBi2xci4Wh2ebCT_G1A) 文章中已经讲过了，将template模版编译成**模版AST抽象语法树**的过程中不会处理v-for、v-model等内置指令，而是将其当做普通的props属性处理。
+我们在前面的 [baseCompile函数](/template/baseCompile) 文章中已经讲过了，将template模版编译成**模版AST抽象语法树**的过程中不会处理v-for、v-model等内置指令，而是将其当做普通的props属性处理。
 
 比如我们这个demo，编译成**模版AST抽象语法树**后。input标签对应的node节点中就增加了三个props属性，name分别为for、bind、model，分别对应的是v-for、v-bind、v-model。真正处理这些vue内置指令是在`transform`函数中。
 # `transform`函数
-本文中使用的vue版本为**3.4.19**，`transform`函数在**node_modules/@vue/compiler-core/dist/compiler-core.cjs.js**文件中。找到`transform`函数的代码，打上断点。
+`transform`函数在**node_modules/@vue/compiler-core/dist/compiler-core.cjs.js**文件中。找到`transform`函数的代码，打上断点。
 
-从上一篇文章我们知道了`transform`函数是在node端执行的，所以我们需要启动一个`debug`终端，才可以在node端打断点。这里以vscode举例，首先我们需要打开终端，然后点击终端中的`+`号旁边的下拉箭头，在下拉中点击`Javascript Debug Terminal`就可以启动一个`debug`终端。
-![debug-terminal](https://img2024.cnblogs.com/blog/1217259/202403/1217259-20240307085801994-450953368.png)
+从前面的文章我们知道了`transform`函数是在node端执行的，所以我们需要启动一个`debug`终端，才可以在node端打断点。这里以vscode举例，首先我们需要打开终端，然后点击终端中的`+`号旁边的下拉箭头，在下拉中点击`Javascript Debug Terminal`就可以启动一个`debug`终端。
+![debug-terminal](/common/debug-terminal.png){data-zoomable}
 
 接着在`debug`终端中执行`yarn dev`（这里是以`vite`举例）。在浏览器中访问 [http://localhost:5173/](http://localhost:5173/)，此时断点就会走到`transform`函数中了。我们在debug终端中来看看调用`transform`函数时传入的`root`变量，如下图：
-![before-transform](https://img2024.cnblogs.com/blog/1217259/202404/1217259-20240417230928301-1801662528.png)
+![before-transform](/template/transform/before-transform.png){data-zoomable}
 
 
 从上图中我们可以看到`transform`函数接收的第一个参数`root`变量是一个**模版AST抽象语法树**，为什么说他是**模版AST抽象语法树**呢？因为这棵树的结构和template模块中的结构一模一样，`root`变量也就是**模版AST抽象语法树**是对template模块进行描述。
@@ -79,7 +53,7 @@ const title = ref("hello word");
 p标签中的内容由两部分组成：`<p>标题是：{{ title }}</p>`。此时我们发现p标签的children也是有两个，分别是写死的文本和`title`变量。
 
 我们接着来看`transform`函数，在我们这个场景中简化后的代码如下：
-```
+```js
 function transform(root, options) {
   const context = createTransformContext(root, options);
   traverseNode(root, context);
@@ -94,16 +68,16 @@ function transform(root, options) {
 在vue中可以通过provied向整颗组件树提供数据，然后在树的任意节点可以通过inject拿到提供的数据。比如：
 
 根组件App.vue，注入上下文。
-```
+```js
 const count = ref(0)
 provide('count', count)
 ```
 业务组件list.vue，读取上下文。
-```
+```js
 const count = inject('count')
 ```
 在react中，我们可以使用`React.createContext` 函数创建一个上下文对象，然后注入到组件树中。
-```
+```js
 const ThemeContext = React.createContext('light');
 
 function App() {
@@ -117,7 +91,7 @@ function App() {
 }
 ```
 在这颗组件树的任意层级中都能拿到上下文对象中提供的数据：
-```
+```js
 const theme = useContext(ThemeContext);
 ```
 树中的节点一般可以通过children拿到子节点，但是父节点一般不容易通过子节点拿到。在转换的过程中我们有的时候需要拿到父节点进行一些操作，比如将当前节点替换为一个新的节点，又或者直接删掉当前节点。
@@ -125,7 +99,7 @@ const theme = useContext(ThemeContext);
 所以在这里会维护一个context上下文对象，对象中会维护一些状态和方法。比如当前正在转换的节点是哪个，当前转换的节点的父节点是哪个，当前节点在父节点中是第几个子节点，还有`replaceNode`、`removeNode`等方法。
 ## 上下文中的一些属性和方法
 我们将断点走进`createTransformContext`函数中，简化后的代码如下：
-```
+```js
 function createTransformContext(
   root,
   {
@@ -185,7 +159,7 @@ function createTransformContext(
 - removeNode：删除当前节点。
 # `traverseNode`函数
 接着将断点走进`traverseNode`函数中，在我们这个场景中简化后的代码如下：
-```
+```js
 function traverseNode(node, context) {
   context.currentNode = node;
   const { nodeTransforms } = context;
@@ -225,7 +199,7 @@ function traverseNode(node, context) {
 - 将`exitFns`数组中存的回调函数依次从末尾取出来挨个执行。
 ## `traverseChildren`函数
 我们先来看看第二部分的`traverseChildren`函数，代码很简单，简化后的代码如下：
-```
+```js
 function traverseChildren(parent, context) {
   let i = 0;
   for (; i < parent.children.length; i++) {
@@ -240,11 +214,11 @@ function traverseChildren(parent, context) {
 
 所以在`traverseNode`函数执行的过程中，`context.parent`总是指向当前节点的父节点，`context.childIndex`总是指向当前节点在父节点中的index位置。如下图：
 
-![traverseChildren](https://img2024.cnblogs.com/blog/1217259/202404/1217259-20240417230950272-2111118608.png)
+![traverseChildren](/template/transform/traverseChildren.png){data-zoomable}
 
 ## 进入时执行的转换函数
 我们现在回过头来看第一部分的代码，代码如下：
-```
+```js
 function traverseNode(node, context) {
   context.currentNode = node;
   const { nodeTransforms } = context;
@@ -269,8 +243,8 @@ function traverseNode(node, context) {
 ```
 首先会将`context.currentNode`更新为当前节点，然后从context上下文中拿到由转换函数组成的`nodeTransforms`数组。
 
-在 [看不懂来打我，vue3如何将template编译成render函数](https://mp.weixin.qq.com/s/OM_xBi2xci4Wh2ebCT_G1A) 文章中我们已经讲过了`nodeTransforms`数组中主要存了下面这些转换函数，代码如下：
-```
+在 [baseCompile函数](/template/baseCompile) 文章中我们已经讲过了`nodeTransforms`数组中主要存了下面这些转换函数，代码如下：
+```js
 const nodeTransforms = [
   transformOnce,
   transformIf,
@@ -288,7 +262,7 @@ const nodeTransforms = [
 很明显我们这里的v-for指令就会被`nodeTransforms`数组中的`transformFor`转换函数处理。
 
 看到这里有的小伙伴就会问了，怎么没有在`nodeTransforms`数组中看到处理`v-model`指令的转换函数呢？处理`v-model`指令的转换函数是在`directiveTransforms`对象中。在`directiveTransforms`对象中主要存了下面这些转换函数：
-```
+```js
 const directiveTransforms = {
   bind: transformBind,
   cloak: compilerCore.noopDirectiveTransform,
@@ -312,7 +286,7 @@ const directiveTransforms = {
 为什么需要判断context上下文中的`currentNode`呢？原因是经过转换函数的处理后当前节点可能会被删除了，也有可能会被替换成一个新的节点，所以在每次执行完转换函数后都会更新本地的node变量，保证在下一个的转换函数执行时传入的是最新的node节点。
 ## 退出时执行的转换函数回调
 我们接着来看`traverseNode`函数中最后一部分，代码如下：
-```
+```js
 function traverseNode(node, context) {
   // ...省略
   context.currentNode = node;
@@ -331,7 +305,7 @@ function traverseNode(node, context) {
 `traverseNode`函数其实就是典型的**洋葱模型**，依次从父组件到子组件挨着调用`nodeTransforms`数组中所有的转换函数，然后从子组件到父组件倒序执行`nodeTransforms`数组中所有的转换函数返回的回调函数。`traverseNode`函数内的设计很高明，如果你还没反应过来，别着急我接下来会讲他高明在哪里。
 # 洋葱模型`traverseNode`函数
 我们先来看看什么是洋葱模型，如下图：
-![onion](https://img2024.cnblogs.com/blog/1217259/202404/1217259-20240417231005783-1989415119.png)
+![onion](/template/transform/onion.png){data-zoomable}
 
 
 洋葱模型就是：从外面一层层的进去，再一层层的从里面出来。
@@ -363,36 +337,36 @@ function traverseNode(node, context) {
 - 调用`transformFor`转换函数返回的回调函数，第2次对node节点进行转换之后。
 
 我们将代码走到第1个断点，看看执行`transformFor`转换函数之前input标签的node节点是什么样的，如下图：
-![transformFor1](https://img2024.cnblogs.com/blog/1217259/202404/1217259-20240417231023831-1864661731.png)
+![transformFor1](/template/transform/transformFor1.png){data-zoomable}
 
 从上图中可以看到input标签的node节点中还是有一个v-for的props属性，说明此时v-for指令还没被处理。
 
 我们接着将代码走到第2个断点，看看调用`transformFor`转换函数第1次对node节点进行转换之后是什么样的，如下图：
-![transformFor2](https://img2024.cnblogs.com/blog/1217259/202404/1217259-20240417231036944-804408056.png)
+![transformFor2](/template/transform/transformFor2.png){data-zoomable}
 
 从上图中可以看到原本的input的node节点已经被替换成了一个新的node节点，新的node节点的children才是原来的node节点。并且input节点props属性中的v-for指令也被消费了。新节点的`source.content`里存的是`v-for="item in msgList"`中的`msgList`变量。新节点的`valueAlias.content`里存的是`v-for="item in msgList"`中的`item`。请注意此时`arguments`数组中只有一个字段，存的是`msgList`变量。
 
 我们接着将代码走到第3个断点，看看调用`transformFor`转换函数返回的回调函数，第2次对node节点进行转换之后是什么样的，如下图：
-![transformFor3](https://img2024.cnblogs.com/blog/1217259/202404/1217259-20240417231051212-887127045.png)
+![transformFor3](/template/transform/transformFor3.png){data-zoomable}
 
 
 从上图可以看到`arguments`数组中多了一个字段，input标签现在是当前节点的子节点。按照我们前面讲的洋葱模型，input子节点现在已经被转换完成了。所以多的这个字段就是input标签经过`transform`函数转换后的node节点，将转换后的input子节点存到父节点上面，后面生成render函数时会用。
 ## `transformModel`转换函数
 通过前面我们知道了用于处理`v-model`指令的`transformModel`转换函数是在`directiveTransforms`对象中，只有当node节点中有对应的指令才会执行对应的转换函数。我们这里input上面有v-model指令，所以就会执行`transformModel`转换函数。
 
-我们在前面的 [看不懂来打我，vue3如何将template编译成render函数](https://mp.weixin.qq.com/s/OM_xBi2xci4Wh2ebCT_G1A) 文章中已经讲过了处理`v-model`指令是调用的`@vue/compiler-dom`包的`transformModel`函数，很容易就可以找到`@vue/compiler-dom`包的`transformModel`函数，然后打一个断点，让断点走进`transformModel`函数中，如下图：
-![transformModel](https://img2024.cnblogs.com/blog/1217259/202404/1217259-20240411100520393-1375218383.png)
+我们在前面的 [baseCompile函数](/template/baseCompile) 文章中已经讲过了处理`v-model`指令是调用的`@vue/compiler-dom`包的`transformModel`函数，很容易就可以找到`@vue/compiler-dom`包的`transformModel`函数，然后打一个断点，让断点走进`transformModel`函数中，如下图：
+![transformModel](/template/baseCompile/transformModel.png){data-zoomable}
 
 从上面的图中我们可以看到在`@vue/compiler-dom`包的`transformModel`函数中会调用`@vue/compiler-core`包的`transformModel`函数，拿到返回的`baseResult`对象后再一些其他操作后直接`return baseResult`。
 
 从左边的call stack调用栈中我们可以看到`transformModel`函数是由一个`buildProps`函数调用的，`buildProps`函数是由`postTransformElement`函数调用的。而`postTransformElement`函数则是`transformElement`转换函数返回的回调函数，`transformElement`转换函数是在`nodeTransforms`数组中。
 
 所以`directiveTransforms`对象中的转换函数调用其实是由`nodeTransforms`数组中的`transformElement`转换函数调用的。如下图：
-![directiveTransforms](https://img2024.cnblogs.com/blog/1217259/202404/1217259-20240417231107895-379756171.png)
+![directiveTransforms](/template/transform/directiveTransforms.png){data-zoomable}
 
 
 看名字你应该猜到了`buildProps`函数的作用是生成props属性的。点击Step Out将断点跳出`transformModel`函数，走进`buildProps`函数中，可以看到`buildProps`函数中调用`transformModel`函数的代码如下图：
-![buildProps](https://img2024.cnblogs.com/blog/1217259/202404/1217259-20240411100549536-105326433.png)
+![buildProps](/template/baseCompile/buildProps.png){data-zoomable}
 
 从上图中可以看到执行`directiveTransforms`对象中的转换函数不仅可以对节点进行转换，还会返回一个props数组。比如我们这里处理的是v-model指令，返回的props数组就是由v-model指令编译而来的props属性，这就是所谓的v-model语法糖。
 
@@ -401,7 +375,7 @@ function traverseNode(node, context) {
 答案是只有给自定义组件上面使用`v-model`指令才会生成`modelValue`和`onUpdate:modelValue`两个属性，对于这种原生input标签是不需要生成`modelValue`属性的，而且input标签本身是不接收名为`modelValue`属性，接收的是value属性。
 # 总结
 现在我们再来看看最开始讲的流程图，我想你应该已经能将整个流程串起来了。如下图：
-![full-progress](https://img2024.cnblogs.com/blog/1217259/202404/1217259-20240417230849965-585996762.png)
+![full-progress](/template/transform/full-progress.png){data-zoomable}
 
 `transform`函数的执行过程主要分为下面这几步：
 - 在`transform`函数中调用`createTransformContext`函数生成上下文对象。在上下文对象中存储了当前正在转换的node节点的信息，后面的`traverseNode`、`traverseChildren`、`nodeTransforms`数组中的转换函数、`directiveTransforms`对象中的转换函数都会依赖这个上下文对象。
@@ -416,6 +390,3 @@ function traverseNode(node, context) {
 
 - 执行`nodeTransforms`数组中的`transformElement`转换函数，会返回一个回调函数。在回调函数中会调用`buildProps`函数，在`buildProps`函数中只有当node节点中有对应的指令才会执行`directiveTransforms`对象中对应的转换函数。比如当前node节点有v-model指令，才会去执行`transformModel`转换函数。v-model等指令也就被处理了。
 
-关注（图1）公众号：【前端欧阳】，解锁我更多vue原理文章。
-加我（图2）微信回复「资料」，免费领取欧阳研究vue源码过程中收集的源码资料，欧阳写文章有时也会参考这些资料。同时让你的朋友圈多一位对vue有深入理解的人。
-![公众号](https://img2024.cnblogs.com/blog/1217259/202404/1217259-20240427143439983-488694628.png)![微信](https://img2024.cnblogs.com/blog/1217259/202404/1217259-20240427143453708-1633619741.png)

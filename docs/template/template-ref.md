@@ -1,11 +1,9 @@
 # 前言
-众所周知，vue3的template中使用ref变量无需使用`.value`。还可以在事件处理器中进行赋值操作时，无需使用`.value`就可以直接修改ref变量的值，比如：`<button @click="msg = 'Hello Vue3'">change msg</button>`。你猜vue是在编译时就已经在代码中生成了`.value`，还是运行时使用Proxy拦截的方式去实现的呢？注：本文中使用的vue版本为`3.4.19`。
-
-关注公众号：【前端欧阳】，给自己一个进阶vue的机会
+众所周知，vue3的template中使用ref变量无需使用`.value`。还可以在事件处理器中进行赋值操作时，无需使用`.value`就可以直接修改ref变量的值，比如：`<button @click="msg = 'Hello Vue3'">change msg</button>`。你猜vue是在编译时就已经在代码中生成了`.value`，还是运行时使用Proxy拦截的方式去实现的呢？
 
 # 看个demo
 看个简单的demo，代码如下：
-```
+```vue
 <template>
   <p>{{ msg }}</p>
   <button @click="msg = 'Hello Vue3'">change msg</button>
@@ -22,7 +20,7 @@ console.log(msg.value);
 上面的代码很简单，在script中想要访问`msg`变量的值需要使用`msg.value`。但是在template中将`msg`变量渲染到p标签上面时就是直接使用`{{ msg }}`，在`click`的事件处理器中给`msg`变量赋新的值时也没有使用到`.value`。
 
 然后在浏览器中找到上面这个vue文件编译后的样子，在之前的文章中已经讲过很多次如何在浏览器中查看编译后的vue文件，这篇文章就不赘述了。编译后的代码如下：
-```
+```js
 import {
   Fragment as _Fragment,
   createElementBlock as _createElementBlock,
@@ -81,12 +79,12 @@ vue文件编译后的代码主要分为两块：`_sfc_main`和`_sfc_render`。
   从render函数中可以看出在template中使用ref变量无需使用`.value`，并不是编译时就已经在代码中生成了`.value`，比如`$setup.msg.value`，而是通过Proxy的方式去实现的。
 # render函数
 在render函数中读和写`msg`变量都变成了`$setup.msg`，而这个`$setup`对象又是调用render函数时传入的第四个参数。现在我们需要搞清楚调用render函数时传入的第四个参数到底是什么？给render函数打一个断点，刷新页面，此时代码走到了断点里面，如下图：
-![render-debug](https://img2024.cnblogs.com/blog/1217259/202406/1217259-20240606000217477-262141701.png)
+![render-debug](/template/template-ref/render-debug.png){data-zoomable}
 
 右边的Call Stack表示当前函数的调用链，从调用链中可以看到render函数是由一个名为`renderComponentRoot`的函数调用的。
 
 点击Call Stack中的`renderComponentRoot`，代码会跳转到`renderComponentRoot`函数中，在我们这个场景中简化后的`renderComponentRoot`函数代码如下：
-```
+```js
 function renderComponentRoot(instance) {
   const {
     props,
@@ -114,11 +112,11 @@ function renderComponentRoot(instance) {
 前面讲过了编译后的`setup`方法会返回一个包含`msg`属性的对象，而这个`$setup`对象也就是`instance.setupState`肯定是和`setup`方法返回的对象有关系的。所以接下来我们需要去debug调试setup方法搞清楚他们到底是什么关系。
 # setup方法
 将render函数中的断点去掉，然后给setup方法打一个断点。刷新页面，此时代码会走到断点中，如下图：
-![setup-debug](https://img2024.cnblogs.com/blog/1217259/202406/1217259-20240606000233216-96387919.png)
+![setup-debug](/template/template-ref/setup-debug.png){data-zoomable}
 
 
 同理在Call Stack中可以看到调用setup方法的是`callWithErrorHandling`函数，点击Call Stack中的`callWithErrorHandling`，代码会跳转到`callWithErrorHandling`函数中。代码如下：
-```
+```js
 function callWithErrorHandling(fn, instance, type, args) {
   try {
     return args ? fn(...args) : fn();
@@ -130,7 +128,7 @@ function callWithErrorHandling(fn, instance, type, args) {
 从上面可以看到在`callWithErrorHandling`函数中只是进行了错误处理，并不是我们想要找的。
 ## `setupStatefulComponent`函数
 从Call Stack中可以看到调用`callWithErrorHandling`函数的是`setupStatefulComponent`函数，点击Call Stack中的`setupStatefulComponent`，代码会跳转到`setupStatefulComponent`函数中。在我们这个场景中简化后的`setupStatefulComponent`函数代码如下：
-```
+```js
 function setupStatefulComponent(instance) {
   const Component = instance.type;
   const { setup } = Component;
@@ -141,7 +139,7 @@ function setupStatefulComponent(instance) {
 从上面的代码可以看到确实是使用`callWithErrorHandling`函数执行了setup方法，并且还将setup方法的返回值对象赋值给了`setupResult`变量。然后以`instance`（vue实例）和`setupResult`（setup方法的返回值）为参数，调用了`handleSetupResult`函数。
 ## `handleSetupResult`函数
 将断点走进`handleSetupResult`函数，在我们这个场景中简化后的`handleSetupResult`函数代码如下：
-```
+```js
 function handleSetupResult(instance, setupResult) {
   instance.setupState = proxyRefs(setupResult);
 }
@@ -151,7 +149,7 @@ function handleSetupResult(instance, setupResult) {
 现在我们已经找到了`instance.setupState`是在这里赋值的，它的值是`proxyRefs`函数的返回结果。
 ## `proxyRefs`函数
 将断点走进`proxyRefs`函数，代码如下：
-```
+```js
 function proxyRefs(objectWithRefs) {
   return isReactive(objectWithRefs)
     ? objectWithRefs
@@ -163,7 +161,7 @@ function proxyRefs(objectWithRefs) {
 这里的`objectWithRefs`对象就是`setup`方法的返回值对象，通过前面我们知道`setup`方法的返回值对象就是一个普通的js对象，并不是reactive的。所以`proxyRefs`函数会返回三目运算符冒号（`:`）后面的表达式，也就是使用`Proxy`创建的`setup`方法返回值对象代理。
 
 我们接着来看`shallowUnwrapHandlers`里面做了哪些事情，代码如下：
-```
+```js
 const shallowUnwrapHandlers = {
   get: (target, key, receiver) => unref(Reflect.get(target, key, receiver)),
   set: (target, key, value, receiver) => {
@@ -199,14 +197,10 @@ const shallowUnwrapHandlers = {
 **所以在template中给ref变量赋值无需使用`.value`，是因为在Proxy的set拦截中也帮我们自动处理了`.value`。**
 # 总结
 整个流程图如下：
-![full-progress](https://img2024.cnblogs.com/blog/1217259/202406/1217259-20240606000417267-1377479262.png)
-
-
+![full-progress](/template/template-ref/full-progress.png){data-zoomable}
 
 在vue3的template中使用ref变量无需使用`.value`，是因为有个Proxy的get拦截，在get拦截中会自动帮我们去取ref变量的`.value`属性。
 
 同样的在template中对ref变量进行赋值也无需使用`.value`，也是有个Proxy的set拦截，在set拦截中会自动帮我们去给ref变量的`.value`属性进行赋值。
 
-关注公众号：【前端欧阳】，给自己一个进阶vue的机会
 
-![](https://img2024.cnblogs.com/blog/1217259/202406/1217259-20240606112202286-1547217900.jpg)

@@ -2,15 +2,13 @@
 
 我们每天写`vue3`项目的时候都会使用`setup`语法糖，但是你有没有思考过下面几个问题。`setup`语法糖经过编译后是什么样子的？为什么在`setup`顶层定义的变量可以在`template`中可以直接使用？为什么`import`一个组件后就可以直接使用，无需使用`components` 选项来显式注册组件？
 
-[欧阳平时写文章参考的多本vue源码电子书、加入欧阳的第一个vue源码交流群](https://juejin.cn/pin/7387215691155734567)
-
 # vue 文件如何渲染到浏览器上
 
 要回答上面的问题，我们先来了解一下从一个`vue`文件到渲染到浏览器这一过程经历了什么？
 
 我们的`vue`代码一般都是写在后缀名为vue的文件上，显然浏览器是不认识vue文件的，浏览器只认识html、css、jss等文件。所以第一步就是通过`webpack`或者`vite`将一个vue文件编译为一个包含`render`函数的`js`文件。然后执行`render`函数生成虚拟DOM，再调用浏览器的`DOM API`根据虚拟DOM生成真实DOM挂载到浏览器上。
 
-![progress](/what-setup/progress.png)
+![progress](/script/what-setup/progress.png){data-zoomable}
 
 
 
@@ -196,23 +194,21 @@
 
 # `debug`源码搞清楚是如何调用`render`函数
 
-有的小伙伴看到这里需要看源码就觉得头大了，别着急，其实很简单，我会一步一步的带着你去debug源码。
-
 首先我们将`Enable JavaScript source maps`给取消勾选了，不然在debug源码的时候断点就会走到`vue`文件中，而不是走到编译会的js文件中。
 
-![sourceMap](/what-setup/sourceMap.png)
+![sourceMap](/script/what-setup/sourceMap.png){data-zoomable}
 
 然后我们需要在设置里面的Ignore List看看`node_modules`文件夹是否被忽略。新版谷歌浏览器中会默认排除掉`node_modules`文件夹，所以我们需要将这个取消勾选。如果忽略了`node_modules`文件夹，那么`debug`的时候断点就不会走到`node_modules`中`vue`的源码中去了。
 
-![ignoreList](/what-setup/ignoreList.png)
+![ignoreList](/script/what-setup/ignoreList.png){data-zoomable}
 
 接下来我们需要在浏览器中找到vue文件编译后的js代码，我们只需要在`network`面板中找到这个`vue`文件的`http`请求，然后在`Response`下右键选择`Open in Sources panel`，就会自动在`sources`面板自动打开对应编译后的js文件代码。
 
-![network](/what-setup/network.png)
+![network](/script/what-setup/network.png){data-zoomable}
 
 找到编译后的js文件，我们想`debug`看看是如何调用`render`函数的，所以我们给render函数加一个断点。然后刷新页面，发现代码已经走到了断点的地方。我们再来看看右边的Call Stack调用栈，发现`render`函数是由一个`vue`源码中的`renderComponentRoot`函数调用的。
 
-![render](/what-setup/render.png)
+![render](/script/what-setup/render.png){data-zoomable}
 
 点击Call Stack中的`renderComponentRoot`函数就可以跳转到`renderComponentRoot`函数的源码，我们发现`renderComponentRoot`函数中调用`render`函数的代码主要是下面这样的：
 ```js
@@ -239,7 +235,7 @@
 
 我们需要给`setup`函数加一个断点，然后刷新页面进入断点。通过分析Call Stack调用栈，我们发现`setup`函数是由`vue`中的一个`setupStatefulComponent`函数调用执行的。
 
-![setup](/what-setup/setup.png)
+![setup](/script/what-setup/setup.png){data-zoomable}
 
 点击Call Stack调用栈中的`setupStatefulComponent`，进入到`setupStatefulComponent`的源码。我们看到`setupStatefulComponent`中的代码主要是这样的：
 ```js
@@ -255,7 +251,7 @@
 ```
 `setup`函数是`Component`上面的一个属性，我们将鼠标放到`Component`上面，看看这个`Component`是什么东西？
 
-![component](/what-setup/component.png)
+![component](/script/what-setup/component.png){data-zoomable}
 
 看到这个`Component`对象中既有`render`方法也有`setup`方法是不是感觉很熟悉，没错这个`Component`对象实际就是我们的`vue`文件编译后的js对象。
 ```js
@@ -290,13 +286,17 @@
 
 看到这里我们整个流程已经可以串起来了，首先会执行由`setup`语法糖编译后的`setup`函数。然后将`setup`函数中由顶层变量和`import`导入组成的返回值对象经过`Proxy`处理后赋值给`vue`实例的`setupState`属性，然后执行`render`函数的时候从`vue`实例中取出`setupState`属性也就是`setup`的返回值。这样在`render`函数也就是`template`模版就可以访问到`setup`中的顶层变量和`import`导入。
 
-![setup-progress](/what-setup/setup-progress.png)
+![setup-progress](/script/what-setup/setup-progress.png){data-zoomable}
 
 现在我们可以回答前面提的另外两个问题了：
 
 **为什么在`setup`顶层定义的变量可以在`template`中可以直接使用？**
 
-因为在`setup`语法糖顶层定义的变量经过编译后会被加入到`setup`函数返回值对象`__returned__`中，而非`setup`顶层定义的变量不会加入到`__returned__`对象中。`setup`函数返回值经过`Proxy`处理后会被塞到`vue`实例的`setupState`属性上，执行`render`函数的时候会将`vue`实例上的`setupState`属性传递给`render`函数，所以在`render`函数中就可以访问到`setup`顶层定义的变量和`import`导入。而`render`函数实际就是由`template`编译得来的，所以说在`template`中可以访问到`setup`顶层定义的变量和`import`导入。。
+因为在`setup`语法糖顶层定义的变量经过编译后会被加入到`setup`函数返回值对象`__returned__`中，而非`setup`顶层定义的变量不会加入到`__returned__`对象中。
+
+`setup`函数返回值经过`Proxy`处理后会被塞到`vue`实例的`setupState`属性上，执行`render`函数的时候会将`vue`实例上的`setupState`属性传递给`render`函数，所以在`render`函数中就可以访问到`setup`顶层定义的变量和`import`导入。
+
+而`render`函数实际就是由`template`编译得来的，所以说在`template`中可以访问到`setup`顶层定义的变量和`import`导入。。
 
 **为什么`import`一个组件后就可以直接使用，无需使用`components` 选项来显式注册组件？**
 
@@ -304,5 +304,7 @@
 
 # 总结
 
-`setup`语法糖经过编译后就变成了`setup`函数，而`setup`函数的返回值是一个对象，这个对象就是由在`setup`顶层定义的变量和`import`导入组成的。`vue`在初始化的时候会执行`setup`函数，然后将`setup`函数返回值经过`Proxy`处理后塞到`vue`实例的`setupState`属性上。执行`render`函数的时候会将`vue`实例上的`setupState`属性（也就是`setup`函数的返回值）传递给`render`函数，所以在`render`函数中就可以访问到`setup`顶层定义的变量和`import`导入。而`render`函数实际就是由`template`编译得来的，所以说在`template`中就可以访问到`setup`顶层定义的变量和`import`导入。
+`setup`语法糖经过编译后就变成了`setup`函数，而`setup`函数的返回值是一个对象，这个对象就是由在`setup`顶层定义的变量和`import`导入组成的。`vue`在初始化的时候会执行`setup`函数，然后将`setup`函数返回值经过`Proxy`处理后塞到`vue`实例的`setupState`属性上。
+
+执行`render`函数的时候会将`vue`实例上的`setupState`属性（也就是`setup`函数的返回值）传递给`render`函数，所以在`render`函数中就可以访问到`setup`顶层定义的变量和`import`导入。而`render`函数实际就是由`template`编译得来的，所以说在`template`中就可以访问到`setup`顶层定义的变量和`import`导入。
 

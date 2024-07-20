@@ -24,11 +24,11 @@ export default defineConfig({
             link: "/guide/start-view-source-code",
           },
           {
-            text: "编译时和运行时的区别",
+            text: "编译时和运行时",
             link: "/guide/compiler-and-runtime",
           },
           {
-            text: "一个vue文件是如何编译成js文件的？",
+            text: "vue文件编译成js文件",
             link: "/guide/vue-to-js",
           },
         ],
@@ -37,8 +37,9 @@ export default defineConfig({
         text: "template部分",
         items: [
           {
-            text: "如何将template编译成render函数的？",
-            link: "/template/template-to-render",
+            // 如何将template编译成render函数的？
+            text: "baseCompile函数",
+            link: "/template/baseCompile",
           },
           {
             text: "parse函数",
@@ -63,53 +64,61 @@ export default defineConfig({
             link: "/template/generate",
           },
           {
-            text: "为什么template使用ref无需.value？",
-            link: "/template/template-ref",
-          },
-          {
-            text: "v-bind指令工作原理",
+            text: "v-bind指令",
             link: "/template/v-bind-template",
           },
           {
-            text: "普通组件上面的v-model是怎么实现的？",
-            link: "/template/v-model-base",
+            text: "普通组件上面的v-model",
+            link: "/template/v-model-component",
           },
           {
-            text: "原生input上面的v-model是怎么实现的？",
-            link: "/template/v-model-raw",
+            text: "原生input上面的v-model",
+            link: "/template/v-model-input",
+          },
+          {
+            text: "template使用ref无需.value",
+            link: "/template/template-ref",
           },
         ],
       },
       {
         text: "script部分",
         items: [
-          { text: "宏到底是什么东西？", link: "/script/what-macros" },
+          // 宏到底是什么东西？
+          { text: "宏函数", link: "/script/what-macros" },
           {
-            text: "setup语法糖到底是什么东西？",
+            // setup语法糖到底是什么东西？
+            text: "setup函数",
             link: "/script/what-setup",
           },
           {
-            text: "为什么defineProps宏不需要import导入？",
+            // 为什么defineProps宏不需要import导入？
+            text: "defineProps",
             link: "/script/defineProps",
           },
           {
-            text: "defineEmits宏是如何工作的？",
+            // defineEmits宏是如何工作的？
+            text: "defineEmits",
             link: "/script/defineEmits",
           },
           {
-            text: "defineModel是否破坏了单向数据流？",
+            // defineModel是否破坏了单向数据流？
+            text: "defineModel",
             link: "/script/defineModel",
           },
           {
-            text: "defineExpose宏如何暴露方法给父组件使用",
+            // defineExpose宏如何暴露方法给父组件使用
+            text: "defineExpose",
             link: "/script/defineExpose",
           },
           {
-            text: "为什么template可以直接使用setup语法糖中的变量？",
+            // 为什么template可以直接使用setup语法糖中的变量？
+            text: "setup函数导出变量",
             link: "/script/setup-vars",
           },
           {
-            text: "为什么setup语法糖中的组件无需注册？",
+            // 为什么setup语法糖中的组件无需注册？
+            text: "setup函数导出组件",
             link: "/script/setup-component",
           },
         ],
@@ -118,15 +127,15 @@ export default defineConfig({
         text: "style部分",
         items: [
           {
-            text: "scoped避免样式污染之css部分",
+            text: "css上面的data-v-xxx",
             link: "/style/scoped-style",
           },
           {
-            text: "scoped避免样式污染之html部分",
+            text: "html上面的data-v-xxx",
             link: "/style/scoped-template",
           },
           {
-            text: "使用v-bind在style中使用响应式变量",
+            text: "style中的v-bind",
             link: "/style/v-bind-style",
           },
         ],

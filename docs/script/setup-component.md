@@ -1,11 +1,9 @@
 # 前言
-众所周知，在vue2的时候使用一个vue组件要么全局注册，要么局部注册。但是在setup语法糖中直接将组件import导入无需注册就可以使用，你知道这是为什么呢？注：本文中使用的vue版本为`3.4.19`。
-
-关注公众号：【前端欧阳】，给自己一个进阶vue的机会
+众所周知，在vue2的时候使用一个vue组件要么全局注册，要么局部注册。但是在setup语法糖中直接将组件import导入无需注册就可以使用，你知道这是为什么呢？
 
 # 看个demo
 我们先来看个简单的demo，代码如下：
-```
+```vue
 <template>
   <Child />
 </template>
@@ -17,7 +15,7 @@ import Child from "./child.vue";
 上面这个demo在setup语法糖中import导入了`Child`子组件，然后在template中就可以直接使用了。
 
 我们先来看看上面的代码编译后的样子，在之前的文章中已经讲过很多次如何在浏览器中查看编译后的vue文件，这篇文章就不赘述了。编译后的代码如下：
-```
+```js
 import {
   createBlock as _createBlock,
   defineComponent as _defineComponent,
@@ -45,17 +43,17 @@ export default _sfc_main;
 
 有一点需要注意的是，我们原本是在setup语法糖中import导入的`Child`子组件，但是经过编译后import导入的代码已经被提升到setup函数外面去了。
 
-在render函数中使用`$setup["Child"]`就可以拿到`Child`子组件，并且通过`_createBlock($setup["Child"]);`就可以将子组件渲染到页面上去。从命名上我想你应该猜到了`$setup`对象和上面的setup函数的return对象有关，其实这里的`$setup["Child"]`就是setup函数的return对象中的`Child`组件。至于在render函数中是怎么拿到`setup`函数返回的对象可以看我的另外一篇文章： [Vue 3 的 setup语法糖到底是什么东西？](https://mp.weixin.qq.com/s?__biz=MzkzMzYzNzMzMQ==&mid=2247483842&idx=1&sn=9d8f9ad19d8946603d681d2598f7a143&scene=21#wechat_redirect)
+在render函数中使用`$setup["Child"]`就可以拿到`Child`子组件，并且通过`_createBlock($setup["Child"]);`就可以将子组件渲染到页面上去。从命名上我想你应该猜到了`$setup`对象和上面的setup函数的return对象有关，其实这里的`$setup["Child"]`就是setup函数的return对象中的`Child`组件。至于在render函数中是怎么拿到`setup`函数返回的对象可以看我的另外一篇文章： [setup函数](/script/what-setup)
 
 接下来我将通过debug的方式带你了解编译时是如何将`Child`塞到setup函数的return对象中，以及怎么将import导入`Child`子组件的语句提升到setup函数外面去的。
 # `compileScript`函数
-在上一篇 [有点东西，template可以直接使用setup语法糖中的变量原来是因为这个](https://mp.weixin.qq.com/s/e63Gkpas9oWfnty2riW6Ww) 文章中我们已经详细讲过了setup语法糖是如何编译成setup函数，以及如何根据将顶层绑定生成setup函数的return对象。**所以这篇文章的重点是setup语法糖如何处理里面的import导入语句。**
+在上一篇 [setup函数导出变量](/script/setup-vars) 文章中我们已经详细讲过了setup语法糖是如何编译成setup函数，以及如何根据将顶层绑定生成setup函数的return对象。**所以这篇文章的重点是setup语法糖如何处理里面的import导入语句。**
 
 还是一样的套路启动一个debug终端。这里以`vscode`举例，打开终端然后点击终端中的`+`号旁边的下拉箭头，在下拉中点击`Javascript Debug Terminal`就可以启动一个`debug`终端。
-![debug-terminal](https://img2024.cnblogs.com/blog/1217259/202403/1217259-20240312154207507-485382390.png)
+![debug-terminal](/common/debug-terminal.png){data-zoomable}
 
 然后在`node_modules`中找到`vue/compiler-sfc`包的`compileScript`函数打上断点，`compileScript`函数位置在`/node_modules/@vue/compiler-sfc/dist/compiler-sfc.cjs.js`。接下来我们来看看简化后的`compileScript`函数源码，代码如下：
-```
+```js
 function compileScript(sfc, options) {
   const ctx = new ScriptCompileContext(sfc, options);
   const setupBindings = Object.create(null);
@@ -108,12 +106,12 @@ function compileScript(sfc, options) {
 经过前面的处理`allBindings`对象中已经收集了setup语法糖中的所有顶层绑定，然后遍历`allBindings`对象生成setup函数中的return对象。
 
 我们在debug终端来看看生成的return对象，如下图：
-![return](https://img2024.cnblogs.com/blog/1217259/202406/1217259-20240615222531414-588274574.png)
+![return](/script/setup-component/return.png){data-zoomable}
 
 从上图中可以看到setup函数中已经有了一个return对象了，return对象的`Child`属性值就是`Child`子组件的引用。
 # 收集`import`导入
 接下来我们来详细看看如何将setup语法糖中的全部import导入收集到`ctx.userImports`对象中，代码如下：
-```
+```js
 function compileScript(sfc, options) {
   // 。。。省略
   for (const node of scriptSetupAst.body) {
@@ -130,7 +128,7 @@ function compileScript(sfc, options) {
 遍历`scriptSetupAst.body`也就是`<script setup>`模块中的code代码字符串对应的AST抽象语法树，如果当前节点类型是import导入，就会执行`hoistNode`函数将当前import导入提升到setup函数外面去。
 ## `hoistNode`函数
 将断点走进`hoistNode`函数，代码如下：
-```
+```js
 function hoistNode(node) {
   const start = node.start + startOffset;
   let end = node.end + startOffset;
@@ -144,7 +142,7 @@ function hoistNode(node) {
 }
 ```
 编译阶段生成新的code字符串是基于整个vue源代码去生成的，而不是仅仅基于`<script setup>`模块中的js代码去生成的。我们来看看此时的code代码字符串是什么样的，如下图：
-![before-move](https://img2024.cnblogs.com/blog/1217259/202406/1217259-20240615222550160-817064631.png)
+![before-move](/script/setup-component/before-move.png){data-zoomable}
 
 从上图中可以看到此时的code代码字符串还是和初始的源代码差不多，没什么变化。
 
@@ -155,12 +153,12 @@ function hoistNode(node) {
 最后就是调用`ctx.s.move`方法，这个方法接收三个参数。第一个参数是要移动的字符串开始位置，第二个参数是要移动的字符串结束位置，第三个参数为将字符串移动到的位置。
 
 所以这里的`ctx.s.move(start, end, 0)`就是将import语句移动到最前面的位置，执行完`ctx.s.move`方法后，我们在debug终端来看看此时的code代码字符串，如下图：
-![after-move](https://img2024.cnblogs.com/blog/1217259/202406/1217259-20240615222604431-1485581146.png)
+![after-move](/script/setup-component/after-move.png){data-zoomable}
 
 从上图中可以看到import语句已经被提升到了最前面去了。
 ## 遍历import导入说明符
 我们接着来看前面省略的遍历`node.specifiers`的代码，如下：
-```
+```js
 function compileScript(sfc, options) {
   // 。。。省略
 
@@ -190,7 +188,7 @@ function compileScript(sfc, options) {
 }
 ```
 我们先在debug终端看看`node.specifiers`数组是什么样的，如下图：
-![specifiers](https://img2024.cnblogs.com/blog/1217259/202406/1217259-20240615222617833-1753816965.png)
+![specifiers](/script/setup-component/specifiers.png){data-zoomable}
 
 从上图中可以看到`node.specifiers`数组是一个导入说明符，那么为什么他是一个数组呢？原因是import导入的时候可以一次导入 多个变量进来，比如`import {format, parse} from "./util.js"`
 
@@ -201,7 +199,7 @@ function compileScript(sfc, options) {
 `specifier.type`是导入的类型，这里是`ImportDefaultSpecifier`，说明是default导入。
 
 接着调用`getImportedName`函数，根据导入说明符获取当前导入的name。代码如下：
-```
+```js
 function getImportedName(specifier) {
   if (specifier.type === "ImportSpecifier")
     return specifier.imported.type === "Identifier"
@@ -212,7 +210,7 @@ function getImportedName(specifier) {
 }
 ```
 大家都知道import导入有三种写法，分别对应的就是`getImportedName`函数中的三种情况。如下：
-```
+```js
 import { format } from "./util.js";	// 命名导入
 import * as foo from 'module';	// 命名空间导入
 import Child from "./child.vue";	// default导入的方式
@@ -226,7 +224,7 @@ import Child from "./child.vue";	// default导入的方式
 最后就是拿着这些import导入相关的信息去调用`registerUserImport`函数。
 ## `registerUserImport`函数
 将断点走进`registerUserImport`函数，代码如下：
-```
+```js
 function registerUserImport(
   source2,
   local,
@@ -256,7 +254,7 @@ function registerUserImport(
 }
 ```
 `registerUserImport`函数就是将当前import导入收集到`ctx.userImports`对象中的地方，我们先不看里面的那块if语句，先来在debug终端中来看看`ctx.userImports`对象中收集了哪些import导入的信息。如下图：
-![userImports](https://img2024.cnblogs.com/blog/1217259/202406/1217259-20240615222633876-2041517645.png)
+![userImports](/script/setup-component/userImports.png){data-zoomable}
 
 从上图中可以看到收集到`ctx.userImports`对象中的key就是import导入进来的变量名称，在这里就是`Child`变量。
 
@@ -276,7 +274,7 @@ function registerUserImport(
 
 ## `isImportUsed`函数
 将断点走进`isImportUsed`函数，代码如下：
-```
+```js
 function isImportUsed(local, sfc) {
   return resolveTemplateUsedIdentifiers(sfc).has(local);
 }
@@ -284,7 +282,7 @@ function isImportUsed(local, sfc) {
 这个`local`你应该还记得，他的值是`Child`变量。`resolveTemplateUsedIdentifiers(sfc)`函数会返回一个set集合，所以`has(local)`就是返回的set集合中是否有`Child`变量，也就是template中是否有使用`Child`组件。
 ## `resolveTemplateUsedIdentifiers`函数
 接着将断点走进`resolveTemplateUsedIdentifiers`函数，代码如下：
-```
+```js
 function resolveTemplateUsedIdentifiers(sfc): Set<string> {
   const { ast } = sfc.template!;
   const ids = new Set<string>();
@@ -317,7 +315,7 @@ function resolveTemplateUsedIdentifiers(sfc): Set<string> {
 然后调用`isNativeTag`方法和`isBuiltInComponent`方法，如果当前节点标签既不是原生html标签，也不是vue内置的组件，那么就会执行两行`ids.add`方法，将当前自定义组件变量收集到名为`ids`的set集合中。
 
 我们先来看第一个`ids.add(camelize(tag))`方法，`camelize`代码如下：
-```
+```js
 const camelizeRE = /-(\w)/g;
 const camelize = (str) => {
   return str.replace(camelizeRE, (_, c) => (c ? c.toUpperCase() : ""));
@@ -326,7 +324,7 @@ const camelize = (str) => {
 `camelize`函数使用正则表达式将kebab-case命名法，转换为首字母为小写的驼峰命名法。比如`my-component`经过`camelize`函数的处理后就变成了`myComponent`。这也就是为什么以 `myComponent` 为名注册的组件，在模板中可以通过 `<myComponent>` 或 `<my-component>` 引用。
 
 再来看第二个`ids.add(capitalize(camelize(tag)))`方法，经过`camelize`函数的处理后已经变成了首字母为小写的小驼峰命名法，然后执行`capitalize`函数。代码如下：
-```
+```js
 const capitalize = (str) => {
   return str.charAt(0).toUpperCase() + str.slice(1);
 };
@@ -334,7 +332,7 @@ const capitalize = (str) => {
 `capitalize`函数的作用就是将首字母为小写的驼峰命名法转换成首字母为大写的驼峰命名法。这也就是为什么以 `MyComponent` 为名注册的组件，在模板中可以通过 `<myComponent>`、`<my-component>`或者是 `<myComponent>` 引用。
 
 我们这个场景中是使用`<Child />`引用子组件，所以set集合中就会收集`Child`。再回到`isImportUsed`函数，代码如下：
-```
+```js
 function isImportUsed(local, sfc) {
   return resolveTemplateUsedIdentifiers(sfc).has(local);
 }
@@ -351,6 +349,4 @@ function isImportUsed(local, sfc) {
 
 在render函数中使用`$setup["Child"]`将子组件渲染到页面上去，而这个`$setup["Child"]`就是在setup函数中返回的`Child`属性，也就是`Child`子组件的引用。
 
-关注公众号：【前端欧阳】，给自己一个进阶vue的机会
 
-![](https://img2024.cnblogs.com/blog/1217259/202406/1217259-20240606112202286-1547217900.jpg)

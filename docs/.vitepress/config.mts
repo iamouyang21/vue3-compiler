@@ -22,6 +22,10 @@ export default defineConfig({
         text: "开始",
         items: [
           {
+            text: "导读",
+            link: "/guide/get-start",
+          },
+          {
             text: "如何开始查看源码",
             link: "/guide/start-view-source-code",
           },

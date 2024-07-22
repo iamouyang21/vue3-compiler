@@ -8,7 +8,7 @@ hero:
   actions:
     - theme: brand
       text: 立即开始
-      link: /guide/start-view-source-code
+      link: /guide/get-start
     - theme: alt
       text: 为什么要写这本书
       link: /guide/why

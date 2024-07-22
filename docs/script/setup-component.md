@@ -50,7 +50,7 @@ export default _sfc_main;
 在上一篇 [setup函数导出变量](/script/setup-vars) 文章中我们已经详细讲过了setup语法糖是如何编译成setup函数，以及如何根据将顶层绑定生成setup函数的return对象。**所以这篇文章的重点是setup语法糖如何处理里面的import导入语句。**
 
 还是一样的套路启动一个debug终端。这里以`vscode`举例，打开终端然后点击终端中的`+`号旁边的下拉箭头，在下拉中点击`Javascript Debug Terminal`就可以启动一个`debug`终端。
-![debug-terminal](/common/debug-terminal.png){data-zoomable}
+![debug-terminal](../images/common/debug-terminal.webp){data-zoomable}
 
 然后在`node_modules`中找到`vue/compiler-sfc`包的`compileScript`函数打上断点，`compileScript`函数位置在`/node_modules/@vue/compiler-sfc/dist/compiler-sfc.cjs.js`。接下来我们来看看简化后的`compileScript`函数源码，代码如下：
 ```js
@@ -106,7 +106,7 @@ function compileScript(sfc, options) {
 经过前面的处理`allBindings`对象中已经收集了setup语法糖中的所有顶层绑定，然后遍历`allBindings`对象生成setup函数中的return对象。
 
 我们在debug终端来看看生成的return对象，如下图：
-![return](/script/setup-component/return.png){data-zoomable}
+![return](../images/script/setup-component/return.webp){data-zoomable}
 
 从上图中可以看到setup函数中已经有了一个return对象了，return对象的`Child`属性值就是`Child`子组件的引用。
 # 收集`import`导入
@@ -142,7 +142,7 @@ function hoistNode(node) {
 }
 ```
 编译阶段生成新的code字符串是基于整个vue源代码去生成的，而不是仅仅基于`<script setup>`模块中的js代码去生成的。我们来看看此时的code代码字符串是什么样的，如下图：
-![before-move](/script/setup-component/before-move.png){data-zoomable}
+![before-move](../images/script/setup-component/before-move.webp){data-zoomable}
 
 从上图中可以看到此时的code代码字符串还是和初始的源代码差不多，没什么变化。
 
@@ -153,7 +153,7 @@ function hoistNode(node) {
 最后就是调用`ctx.s.move`方法，这个方法接收三个参数。第一个参数是要移动的字符串开始位置，第二个参数是要移动的字符串结束位置，第三个参数为将字符串移动到的位置。
 
 所以这里的`ctx.s.move(start, end, 0)`就是将import语句移动到最前面的位置，执行完`ctx.s.move`方法后，我们在debug终端来看看此时的code代码字符串，如下图：
-![after-move](/script/setup-component/after-move.png){data-zoomable}
+![after-move](../images/script/setup-component/after-move.webp){data-zoomable}
 
 从上图中可以看到import语句已经被提升到了最前面去了。
 ## 遍历import导入说明符
@@ -188,7 +188,7 @@ function compileScript(sfc, options) {
 }
 ```
 我们先在debug终端看看`node.specifiers`数组是什么样的，如下图：
-![specifiers](/script/setup-component/specifiers.png){data-zoomable}
+![specifiers](../images/script/setup-component/specifiers.webp){data-zoomable}
 
 从上图中可以看到`node.specifiers`数组是一个导入说明符，那么为什么他是一个数组呢？原因是import导入的时候可以一次导入 多个变量进来，比如`import {format, parse} from "./util.js"`
 
@@ -254,7 +254,7 @@ function registerUserImport(
 }
 ```
 `registerUserImport`函数就是将当前import导入收集到`ctx.userImports`对象中的地方，我们先不看里面的那块if语句，先来在debug终端中来看看`ctx.userImports`对象中收集了哪些import导入的信息。如下图：
-![userImports](/script/setup-component/userImports.png){data-zoomable}
+![userImports](../images/script/setup-component/userImports.webp){data-zoomable}
 
 从上图中可以看到收集到`ctx.userImports`对象中的key就是import导入进来的变量名称，在这里就是`Child`变量。
 

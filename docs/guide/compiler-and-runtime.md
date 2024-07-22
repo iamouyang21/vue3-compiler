@@ -5,7 +5,7 @@
 
 比如你要和一个老外沟通，你的英文超级烂。所以你说的是中文，老外却只理解英文。那你们两个人怎么沟通呢？所以你需要一个翻译器来将你说的中文转换为英文，这样老外就能理解你说的话了，**这个翻译过程就是我们常说的编译时**。
 
-![translate]( /guide/compiler-and-runtime/translate.png){data-zoomable}
+![translate](../images/guide/compiler-and-runtime/translate.webp){data-zoomable}
 
 看完上一个例子如果你还没理解的话，我们再来看一个`vue`的例子。我们平时写`vue`代码时一般都是写在文件后缀名为`.vue`文件中，也就是官方说的单文件组件 (SFC)。
 
@@ -20,7 +20,7 @@
 对于开发环境来说，`编译时`就是在执行类型`yarn dev`这种启动命令，同样将源代码编译成浏览器可直接执行的代码这一过程。和生产环境不同的是生成的代码文件是存在内存中，并不会写到磁盘中，同样这一过程是在`node.js`中完成的。
 # 运行时
 还是以`vue`举例，大家都知道浏览器的渲染过程是将一个`html`文件渲染到页面上的。在SPA单页面中浏览器接收到的`index.html`一般是下面这样的，如下图：
-![html]( /guide/compiler-and-runtime/html.png){data-zoomable}
+![html](../images/guide/compiler-and-runtime/html.webp){data-zoomable}
 从上图中可以看到接收到的html文件中只有一个`<div id="app"></div>`，那么浏览器又是怎么从这个空`div`渲染成丰富多彩的页面呢？
 
 熟悉`vue`源码的同学应该比较清楚，首先是生成一个`app`对象，然后调用`app`对象的`mount`方法将经过编译时处理后拿到的vue组件对象挂载到`<div id="app"></div>`上面。**这一过程就是所谓的运行时。**
@@ -28,7 +28,7 @@
 对于前端来说，运行时就是代码执行在浏览器的阶段。
 # 在浏览器中编译
 看到这里有的小伙伴会有疑惑了，vue好像还提供了一种全局构建的版本。在这个版本中我们可以直接在`html`文件中使用`vue`，无需使用`webpack`或者`vite`这种打包工具打包。比如下面这样：
-![global]( /guide/compiler-and-runtime/global.png){data-zoomable}
+![global](../images/guide/compiler-and-runtime/global.webp){data-zoomable}
 从上图中可以看到，这种用法中除了将`*.vue`文件名替换为`*.html`文件名之外，其他的写法基本是一模一样的。在这种用法中由于没有使用到构建工具`webpack`或者`vite`，当然就没有在`node.js`中执行的编译时。那么在这种用法中，浏览器又是如何识别html文件上面的指令以及编译生成render函数的呢？
 
 答案是在这种全局构建版本的`vue`中会内置一个编译器。在浏览器中运行时如果发现了html文件对应的`template`模块的内容，就会使用内置的编译器将这些模块编译成浏览器可执行的代码，也就是`render`函数。

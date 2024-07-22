@@ -35,7 +35,7 @@ color: red;
 在 [vue文件编译成js文件](/guide/vue-to-js)文章中我们讲过了`transformMain` 函数的作用是将vue文件转换成js文件。
 
 首先我们需要启动一个debug终端。这里以`vscode`举例，打开终端然后点击终端中的`+`号旁边的下拉箭头，在下拉中点击`Javascript Debug Terminal`就可以启动一个`debug`终端。
-![debug-terminal](/common/debug-terminal.png){data-zoomable}
+![debug-terminal](../images/common/debug-terminal.webp){data-zoomable}
 
 接着我们需要给`transformMain` 函数打个断点，`transformMain` 函数的位置在`node_modules/@vitejs/plugin-vue/dist/index.mjs`。
 
@@ -79,14 +79,14 @@ async function transformMain(code, filename, options) {
 }
 ```
 在debug终端来看看`transformMain`函数的入参code，如下图：
-![code](/style/scoped-template/code.png){data-zoomable}
+![code](../images/style/scoped-template/code.webp){data-zoomable}
 
 从上图中可以看到入参code为vue文件的code代码字符串。
 
 在上一篇 [css上面的data-v-xxx](/style/scoped-style) 文章中我们讲过了`createDescriptor`函数会生成一个`descriptor`对象。而`descriptor`对象的id属性`descriptor.id`，就是根据vue文件的路径调用node的`createHash`加密函数生成的，也就是html标签上的自定义属性`data-v-x`中的`x`。
 
 `genTemplateCode`函数会生成编译后的render函数，如下图：
-![templateCode](/style/scoped-template/templateCode.png){data-zoomable}
+![templateCode](../images/style/scoped-template/templateCode.webp){data-zoomable}
 
 从上图中可以看到在生成的render函数中，div标签对应的是`createElementBlock`方法，而在执行`createElementBlock`方法时并没有将`descriptor.id`传入进去。
 
@@ -106,7 +106,7 @@ output.push(
 );
 ```
 最后就是执行`output.join("\n")`，使用换行符将`output`数组中的内容拼接起来就能得到vue文件编译后的js文件，如下图：
-![resolvedCode](/style/scoped-template/resolvedCode.png){data-zoomable}
+![resolvedCode](../images/style/scoped-template/resolvedCode.webp){data-zoomable}
 
 从上图中可以看到编译后的js文件`export default`导出的是`_export_sfc`函数的执行结果，该函数接收两个参数。第一个参数为当前vue组件对象`_sfc_main`，第二个参数是由很多组键值对组成的数组。
 
@@ -133,14 +133,14 @@ function export_sfc(sfc, props) {
 接着就是遍历传入的多组键值对，使用`target[key] = val`给vue组件对象上面额外添加三个属性，分别是`render`、`__scopeId`和`__file`。
 
 在控制台中来看看经过`export_sfc`函数处理后的vue组件对象是什么样的，如下图：
-![sfc](/style/scoped-template/sfc.png){data-zoomable}
+![sfc](../images/style/scoped-template/sfc.webp){data-zoomable}
 
 从上图中可以看到此时的vue组件对象中增加了很多属性，其中我们需要关注的是`__scopeId`属性，他的值就是给html增加自定义属性`data-v-x`。
 # 给render函数打断点
 前面我们讲过了在render函数中渲染div标签时是使用`_createElementBlock("div", _hoisted_1, "hello world")`，并且传入的参数中也并没有`data-v-x`。
 
 所以我们需要搞清楚到底是在哪里使用到`__scopeId`的呢？我们给render函数打一个断点，如下图：
-![render](/style/scoped-template/render.png){data-zoomable}
+![render](../images/style/scoped-template/render.webp){data-zoomable}
 
 刷新页面代码会走到render函数的断点中，将断点走进`_createElementBlock`函数中，在我们这个场景中简化后的`_createElementBlock`函数代码如下：
 ```js
@@ -187,7 +187,7 @@ function createBaseVNode(type, props, children) {
 `scopeId`属性的值是由一个全局变量`currentScopeId`赋值的，接下来我们需要搞清楚全局变量`currentScopeId`是如何被赋值的。
 # `renderComponentRoot`函数
 从Call Stack中可以看到render函数是由一个名为`renderComponentRoot`的函数调用的，如下图：
-![call-stack](/style/scoped-template/call-stack.png){data-zoomable}
+![call-stack](../images/style/scoped-template/call-stack.webp){data-zoomable}
 
 将断点走进`renderComponentRoot`函数，在我们这个场景中简化后的代码如下：
 ```js
@@ -213,7 +213,7 @@ function renderComponentRoot(instance) {
 }
 ```
 从上面的代码可以看到`renderComponentRoot`函数的入参是一个vue实例`instance`，我们在控制台来看看`instance`是什么样的，如下图：
-![instance](/style/scoped-template/instance.png){data-zoomable}
+![instance](../images/style/scoped-template/instance.webp){data-zoomable}
 
 从上图可以看到vue实例`instance`对象上有很多我们熟悉的属性，比如`props`、`refs`等。
 

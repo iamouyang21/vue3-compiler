@@ -20,7 +20,7 @@ const msg = ref();
 其实很简单直接在network上面找到你的那个vue文件就行了，比如我这里的文件是`index.vue`，那我只需要在network上面找叫`index.vue`的文件就行了。但是需要注意一下network上面有两个`index.vue`的js请求，分别是template模块+script模块编译后的js文件，和style模块编译后的js文件。
 
 那怎么区分这两个`index.vue`文件呢？很简单，通过query就可以区分。由style模块编译后的js文件的URL中有type=style的query，如下图所示：
-![network](/template/v-model-input/network.png){data-zoomable}
+![network](../images/template/v-model-input/network.webp){data-zoomable}
 
 接下来我们来看看编译后的`index.vue`，简化的代码如下：
 ```js
@@ -398,7 +398,7 @@ if (el.composing) return;
 后面的代码就很简单了，其中的`document.activeElement`属性返回获得当前焦点（focus）的 DOM 元素，还有`type =  "range"`我们平时基本不会使用。根据使用的修饰符拿到处理后的input输入框中的值，然后和v-model绑定的`msg`变量进行比较。如果两者相等自然不需要执行`el.value = newValue`将输入框中的值更新为最新值。
 # 总结
 现在来看这个流程图你应该就很容易理解了：
-![full-progress](/template/v-model-input/full-progress.png){data-zoomable}
+![full-progress](../images/template/v-model-input/full-progress.webp){data-zoomable}
 在组件上面使用v-model和原生input上面使用v-model区别主要有三点：
 - 组件上面的v-model编译后会生成`modelValue`属性和`@update:modelValue`事件。
 

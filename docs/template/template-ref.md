@@ -79,7 +79,7 @@ vue文件编译后的代码主要分为两块：`_sfc_main`和`_sfc_render`。
   从render函数中可以看出在template中使用ref变量无需使用`.value`，并不是编译时就已经在代码中生成了`.value`，比如`$setup.msg.value`，而是通过Proxy的方式去实现的。
 # render函数
 在render函数中读和写`msg`变量都变成了`$setup.msg`，而这个`$setup`对象又是调用render函数时传入的第四个参数。现在我们需要搞清楚调用render函数时传入的第四个参数到底是什么？给render函数打一个断点，刷新页面，此时代码走到了断点里面，如下图：
-![render-debug](/template/template-ref/render-debug.png){data-zoomable}
+![render-debug](../images/template/template-ref/render-debug.webp){data-zoomable}
 
 右边的Call Stack表示当前函数的调用链，从调用链中可以看到render函数是由一个名为`renderComponentRoot`的函数调用的。
 
@@ -112,7 +112,7 @@ function renderComponentRoot(instance) {
 前面讲过了编译后的`setup`方法会返回一个包含`msg`属性的对象，而这个`$setup`对象也就是`instance.setupState`肯定是和`setup`方法返回的对象有关系的。所以接下来我们需要去debug调试setup方法搞清楚他们到底是什么关系。
 # setup方法
 将render函数中的断点去掉，然后给setup方法打一个断点。刷新页面，此时代码会走到断点中，如下图：
-![setup-debug](/template/template-ref/setup-debug.png){data-zoomable}
+![setup-debug](../images/template/template-ref/setup-debug.webp){data-zoomable}
 
 
 同理在Call Stack中可以看到调用setup方法的是`callWithErrorHandling`函数，点击Call Stack中的`callWithErrorHandling`，代码会跳转到`callWithErrorHandling`函数中。代码如下：
@@ -197,7 +197,7 @@ const shallowUnwrapHandlers = {
 **所以在template中给ref变量赋值无需使用`.value`，是因为在Proxy的set拦截中也帮我们自动处理了`.value`。**
 # 总结
 整个流程图如下：
-![full-progress](/template/template-ref/full-progress.png){data-zoomable}
+![full-progress](../images/template/template-ref/full-progress.webp){data-zoomable}
 
 在vue3的template中使用ref变量无需使用`.value`，是因为有个Proxy的get拦截，在get拦截中会自动帮我们去取ref变量的`.value`属性。
 

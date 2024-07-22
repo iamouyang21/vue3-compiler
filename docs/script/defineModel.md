@@ -2,7 +2,7 @@
 vue3.4增加了`defineModel`宏函数，在子组件内修改了`defineModel`的返回值，父组件上`v-model`绑定的变量就会被更新。大家都知道`v-model`是`:modelValue`和`@update:modelValue`的语法糖，但是你知道为什么我们在子组件内没有写任何关于`props`的定义和`emit`事件触发的代码吗？还有在`template`渲染中`defineModel`的返回值等于父组件`v-model`绑定的变量值，那么这个返回值是否就是名为`modelValue`的props呢？直接修改`defineModel`的返回值就会修改父组件上面绑定的变量，那么这个行为是否相当于子组件直接修改了父组件的变量值，破坏了vue的单向数据流呢？
 # 什么是vue的单向数据流
 vue的单向数据流是指，通过props将父组件的变量传递给子组件，在子组件中是没有权限去修改父组件传递过来的变量。只能通过`emit`抛出事件给父组件，让父组件在事件回调中去修改props传递的变量，然后通过props将更新后的变量传递给子组件。在这一过程中数据的流动是单向的，由父组件传递给子组件，只有父组件有数据的更改权，子组件不可直接更改数据。
-![single-progress](/script/defineModel/single-progress.png){data-zoomable}
+![single-progress](../images/script/defineModel/single-progress.webp){data-zoomable}
 
 # 一个`defineModel`的例子
 在我的另外一篇文章[一文搞懂 Vue3 defineModel 双向绑定：告别繁琐代码！](https://mp.weixin.qq.com/s/nWcS-eFI4jy_cIT0jg5XhQ)讲了`defineModel`的各种用法，在这里我们就不多余赘述了。我们直接来看一个简单的`defineModel`的例子。

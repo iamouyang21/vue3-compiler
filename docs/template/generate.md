@@ -146,15 +146,15 @@ function genModulePreamble(ast, context) {
 }
 ```
 其中的`ast.helpers`是在`transform`阶段收集的需要从vue中import导入的函数，无需将vue中所有的函数都import导入。在debug终端看看`helpers`数组中的值如下图：
-![helpers](/template/generate/helpers.png){data-zoomable}
+![helpers](../images/template/generate/helpers.webp){data-zoomable}
 
 从上图中可以看到需要从vue中import导入`toDisplayString`、`openBlock`、`createElementBlock`这三个函数。
 
 在执行`push`方法之前我们先来看看此时的render函数字符串是什么样的，如下图：
-![before-import](/template/generate/before-import.png){data-zoomable}
+![before-import](../images/template/generate/before-import.webp){data-zoomable}
 
 从上图中可以看到此时生成的render函数字符串还是一个空字符串，执行完push方法后，我们来看看此时的render函数字符串是什么样的，如下图：
-![after-import](/template/generate/after-import.png){data-zoomable}
+![after-import](../images/template/generate/after-import.webp){data-zoomable}
 
 从上图中可以看到此时的render函数中已经有了`import {xxx} from "vue"`了。
 
@@ -169,7 +169,7 @@ const signature = args.join(", ");
 push(`function ${functionName}(${signature}) {`);
 ```
 上面的代码很简单，都是执行`push`方法向render函数中添加code字符串，其中`args`数组就是render函数中的参数。我们在来看看执行完上面这块代码后的render函数字符串是什么样的，如下图：
-![before-genNode](/template/generate/before-genNode.png){data-zoomable}
+![before-genNode](../images/template/generate/before-genNode.webp){data-zoomable}
 
 从上图中可以看到此时已经生成了render函数中的函数名称和参数了。
 # 生成render函数中return的内容
@@ -252,7 +252,7 @@ helper(key) {
 push(`(${helper(OPEN_BLOCK)}(${``}), `);
 ```
 执行完这个`push`方法后在debug终端看看此时的render函数字符串是什么样的，如下图：
-![after-block](/template/generate/after-block.png){data-zoomable}
+![after-block](../images/template/generate/after-block.webp){data-zoomable}
 
 从上图中可以看到，此时render函数中增加了一个`_openBlock`函数的调用。
 
@@ -262,7 +262,7 @@ const callHelper = CREATE_ELEMENT_BLOCK;
 push(helper(callHelper) + `(`, -2 /* None */, node);
 ```
 同理`helper(callHelper)`方法返回的是`_createElementBlock`，执行完这个`push`方法后在debug终端看看此时的render函数字符串是什么样的，如下图：
-![after-createElementBlock](/template/generate/after-createElementBlock.png){data-zoomable}
+![after-createElementBlock](../images/template/generate/after-createElementBlock.webp){data-zoomable}
 
 从上图中可以看到，此时render函数中增加了一个`_createElementBlock`函数的调用。
 
@@ -293,7 +293,7 @@ function genNodeList(nodes, context, multilines = false, comma = true) {
 }
 ```
 我们先来看看此时的`nodes`参数，如下图：
-![nodes](/template/generate/nodes.png){data-zoomable}
+![nodes](../images/template/generate/nodes.webp){data-zoomable}
 
 这里的`nodes`就是调用`genNodeList`函数时传的数组：`[tag, props, children, patchFlag, dynamicProps]`，只是将数组中的`undefined`转换成了`null`。
 
@@ -327,12 +327,12 @@ h("p", null, msg)
 所以在`genNodeList`中会遍历`nodes`数组生成调用`createElementBlock`函数需要传入的参数。
 
 先来看第一个参数`tag`，这里`tag`的值为字符串"p"。所以在for循环中会执行`push(node)`，生成调用`createElementBlock`函数的第一个参数"p"。在debug终端看看此时的render函数，如下图：
-![arg1](/template/generate/arg1.png){data-zoomable}
+![arg1](../images/template/generate/arg1.webp){data-zoomable}
 
 从上图中可以看到`createElementBlock`函数的第一个参数"p"
 
 接着来看`nodes`数组中的第二个参数：`props`，由于p标签中没有`props`属性。所以第二个参数`props`的值为字符串"null"，在for循环中同样会执行`push(node)`，生成调用`createElementBlock`函数的第二个参数"null"。在debug终端看看此时的render函数，如下图：
-![arg2](/template/generate/arg2.png){data-zoomable}
+![arg2](../images/template/generate/arg2.webp){data-zoomable}
 
 从上图中可以看到`createElementBlock`函数的第二个参数`null`
 
@@ -366,14 +366,14 @@ function genInterpolation(node, context) {
 }
 ```
 首先会执行`push`方法向render函数中插入一个`_toDisplayString`函数调用，在debug终端看看执行完这个`push`方法后的render函数，如下图：
-![toDisplayString](/template/generate/toDisplayString.png){data-zoomable}
+![toDisplayString](../images/template/generate/toDisplayString.webp){data-zoomable}
 
 从上图中可以看到此时`createElementBlock`函数的第三个参数只生成了一半，调用`_toDisplayString`函数传入的参数还没生成。
 
 接着会以`node.content`作为参数执行`genNode(node.content, context);`生成`_toDisplayString`函数的参数，此时代码又走回了`genNode`函数。
 
 将断点再次走进`genNode`函数，看看此时的node是什么样的，如下图：
-![simple-expression](/template/generate/simple-expression.png){data-zoomable}
+![simple-expression](../images/template/generate/simple-expression.webp){data-zoomable}
 
 从上图中可以看到此时的node节点是一个简单表达式节点，表达式为：`$setup.msg`。所以代码会走进`genExpression`函数。
 ## `genExpression`函数
@@ -391,7 +391,7 @@ function genExpression(node, context) {
 由于当前的`msg`变量是一个`ref`响应式变量，所以`isStatic`为`false`。所以会执行`push`方法，将`$setup.msg`插入到render函数中。
 
 执行完`push`方法后，在debug终端看看此时的render函数字符串是什么样的，如下图：
-![after-expression](/template/generate/after-expression.png){data-zoomable}
+![after-expression](../images/template/generate/after-expression.webp){data-zoomable}
 
 从上图中可以看到此时的render函数基本已经生成了，剩下的就是调用`push`方法生成各个函数的右括号")"和右花括号"}"。将断点逐层走出，直到`generate`函数中。代码如下：
 ```js
@@ -408,13 +408,13 @@ function generate(ast) {
 }
 ```
 执行完最后一个  `push`方法后，在debug终端看看此时的render函数字符串是什么样的，如下图：
-![render](/template/generate/render.png){data-zoomable}
+![render](../images/template/generate/render.webp){data-zoomable}
 
 从上图中可以看到此时的render函数终于生成啦！
 # 总结
 这是我画的我们这个场景中`generate`生成render函数的流程图：
 
-![full-progress](/template/generate/full-progress.png){data-zoomable}
+![full-progress](../images/template/generate/full-progress.webp){data-zoomable}
 
 
 - 执行`genModulePreamble`函数生成：`import { xxx } from "vue";`

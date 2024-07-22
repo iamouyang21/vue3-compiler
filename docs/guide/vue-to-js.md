@@ -57,7 +57,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   );
 }
 
-__sfc__.render = render;
+_sfc_main.render = _sfc_render;
 export default _sfc_main;
 ```
 编译后的js代码中我们可以看到主要有三部分，想必你也猜到了这三部分刚好对应vue文件的那三块。
@@ -68,11 +68,11 @@ export default _sfc_main;
 大家应该都知道，前端代码运行环境主要有两个，node端和浏览器端，分别对应我们熟悉的编译时和运行时。浏览器明显是不认识vue文件的，所以vue文件编译成js这一过程肯定不是在运行时的浏览器端。很明显这一过程是在编译时的node端。
 
 要在node端打断点，我们需要启动一个debug 终端。这里以vscode举例，首先我们需要打开终端，然后点击终端中的`+`号旁边的下拉箭头，在下拉中点击`Javascript Debug Terminal`就可以启动一个debug终端。
-![debug-terminal](/common/debug-terminal.png){data-zoomable}
+![debug-terminal](../images/common/debug-terminal.webp){data-zoomable}
 
 
 假如vue文件编译为js文件是一个毛线团，那么他的线头一定是`vite.config.ts`文件中使用`@vitejs/plugin-vue`的地方。通过这个线头开始debug我们就能够梳理清楚完整的工作流程。
-![vite-config](/guide/vue-to-js/vite-config.png){data-zoomable}
+![vite-config](../images/guide/vue-to-js/vite-config.webp){data-zoomable}
 
 
 ## vuePlugin函数
@@ -116,7 +116,7 @@ const options = shallowRef({
 `@vitejs/plugin-vue`是作为一个`plugins`插件在vite中使用，`vuePlugin`函数返回的对象中的`buildStart`、`transform`方法就是对应的插件钩子函数。vite会在对应的时候调用这些插件的钩子函数，比如当vite服务器启动时就会调用插件里面的`buildStart`等函数，当vite解析每个模块时就会调用`transform`等函数。更多vite钩子相关内容[查看官网](https://cn.vitejs.dev/guide/api-plugin#universal-hooks)。
 
 我们这里主要看`buildStart`和`transform`两个钩子函数，分别是服务器启动时调用和解析每个模块时调用。给这两个钩子函数打上断点。
-![vue](/guide/vue-to-js/vue.png){data-zoomable}
+![vue](../images/guide/vue-to-js/vue.webp){data-zoomable}
 
 
 然后点击Continue(F5)，vite服务启动后就会走到`buildStart`钩子函数中打的断点。我们可以看到`buildStart`钩子函数的代码是这样的：
@@ -180,7 +180,7 @@ transform(code, id, opt) {
 - 调用`genStyleCode`函数传入第一步生成的`descriptor`对象将`<style scoped>`模块编译为类似这样的import语句，`import "/src/App.vue?vue&type=style&index=0&scoped=7a7a37b1&lang.css";`。
 ### `createDescriptor`函数
 我们先来看看`createDescriptor`函数，将断点走到`createDescriptor(filename, code, options)`这一行代码，可以看到传入的`filename`就是`App.vue`的文件路径，`code`就是`App.vue`中我们写的源代码。
-![createDescriptor](/guide/vue-to-js/createDescriptor.png){data-zoomable}
+![createDescriptor](../images/guide/vue-to-js/createDescriptor.webp){data-zoomable}
 
 
 debug走进`createDescriptor`函数，看到`createDescriptor`函数的代码如下：
@@ -227,19 +227,19 @@ export interface SFCDescriptor {
 }
 ```
 仔细看看`SFCDescriptor`类型，其中的`template`属性就是`App.vue`文件对应的`template`标签中的内容，里面包含了由`App.vue`文件中的`template`模块编译成的AST抽象语法树和原始的`template`中的代码。
-![template](/guide/vue-to-js/template.png){data-zoomable}
+![template](../images/guide/vue-to-js/template.webp){data-zoomable}
 
 
 我们再来看script和`scriptSetup`属性，由于vue文件中可以写多个script标签，`scriptSetup`对应的就是有`setup`的script标签，script对应的就是没有`setup`对应的script标签。我们这个场景中只有`scriptSetup`属性，里面同样包含了`App.vue`中的script模块中的内容。
-![script](/guide/vue-to-js/script.png){data-zoomable}
+![script](../images/guide/vue-to-js/script.webp){data-zoomable}
 
 
 我们再来看看styles属性，这里的styles属性是一个数组，是因为我们可以在vue文件中写多个style模块，里面同样包含了`App.vue`中的style模块中的内容。
-![style](/guide/vue-to-js/style.png){data-zoomable}
+![style](../images/guide/vue-to-js/style.webp){data-zoomable}
 
 
 所以这一步执行`createDescriptor`函数生成的`descriptor`对象中主要有三个属性，`template`属性包含了`App.vue`文件中的`template`模块`code`字符串和AST抽象语法树，`scriptSetup`属性包含了`App.vue`文件中的`<script setup>`模块的`code`字符串，styles属性包含了`App.vue`文件中`<style>`模块中的`code`字符串。`createDescriptor`函数的执行流程图如下：
-![progress-createDescriptor](/guide/vue-to-js/progress-createDescriptor.png){data-zoomable}
+![progress-createDescriptor](../images/guide/vue-to-js/progress-createDescriptor.webp){data-zoomable}
 
 ### `genScriptCode`函数
 我们再来看`genScriptCode`函数是如何将`<script setup>`模块编译成可执行的js代码，同样将断点走到调用`genScriptCode`函数的地方，`genScriptCode`函数主要接收我们上一步生成的`descriptor`对象，调用`genScriptCode`函数后会将编译后的script模块代码赋值给`scriptCode`变量。
@@ -322,7 +322,7 @@ export interface SFCBlock {
 }
 ```
 返回值类型中主要有`scriptAst`、`scriptSetupAst`、`content`这三个属性，`scriptAst`为编译不带`setup`属性的script标签生成的AST抽象语法树。`scriptSetupAst`为编译带`setup`属性的script标签生成的AST抽象语法树，`content`为vue文件中的script模块编译后生成的浏览器可执行的js代码。下面这个是执行`vue/compiler-sfc`的`compileScript`函数返回结果：
-![resolved](/guide/vue-to-js/resolved.png){data-zoomable}
+![resolved](../images/guide/vue-to-js/resolved.webp){data-zoomable}
 
 
 继续将断点走回`genScriptCode`函数，现在逻辑就很清晰了。这里的script对象就是调用`vue/compiler-sfc`的`compileScript`函数返回对象，`scriptCode`就是script对象的`content`属性 ，也就是将vue文件中的script模块经过编译后生成浏览器可直接执行的js代码`code`字符串。
@@ -341,7 +341,7 @@ async function genScriptCode(descriptor, options, pluginContext, ssr, customElem
 }
 ```
 `genScriptCode`函数的执行流程图如下：
-![progress-genScriptCode](/guide/vue-to-js/progress-genScriptCode.png){data-zoomable}
+![progress-genScriptCode](../images/guide/vue-to-js/progress-genScriptCode.webp){data-zoomable}
 
 ### `genTemplateCode`函数
 我们再来看`genTemplateCode`函数是如何将`template`模块编译成render函数的，同样将断点走到调用`genTemplateCode`函数的地方，`genTemplateCode`函数主要接收我们上一步生成的`descriptor`对象，调用`genTemplateCode`函数后会将编译后的`template`模块代码赋值给`templateCode`变量。
@@ -420,10 +420,10 @@ export interface SFCTemplateCompileResults {
   map?: RawSourceMap
 }
 ```
-![render](/guide/vue-to-js/render.png){data-zoomable}
+![render](../images/guide/vue-to-js/render.webp){data-zoomable}
 
 `genTemplateCode`函数的执行流程图如下：
-![progress-genTemplateCode](/guide/vue-to-js/progress-genTemplateCode.png){data-zoomable}
+![progress-genTemplateCode](../images/guide/vue-to-js/progress-genTemplateCode.webp){data-zoomable}
 
 ### `genStyleCode`函数
 我们再来看最后一个`genStyleCode`函数，同样将断点走到调用`genStyleCode`的地方。一样的接收`descriptor`对象。代码如下：
@@ -457,7 +457,7 @@ import ${JSON.stringify(styleRequest)}`;
 }
 ```
 我们前面讲过因为vue文件中可能会有多个style标签，所以`descriptor`对象的styles属性是一个数组。遍历`descriptor.styles`数组，我们发现for循环内全部都是一堆赋值操作，没有调用`vue/compiler-sfc`包暴露出来的任何API。将断点走到 ` return stylesCode;`，看看`stylesCode`到底是什么东西？
-![styleCode](/guide/vue-to-js/styleCode.png){data-zoomable}
+![styleCode](../images/guide/vue-to-js/styleCode.webp){data-zoomable}
 
 通过打印我们发现`stylesCode`竟然变成了一条import语句，并且import的还是当前`App.vue`文件，只是多了几个`query`分别是：`vue`、`type`、`index`、`scoped`、`lang`。
 
@@ -540,7 +540,7 @@ interface SFCStyleCompileOptions {
 }
 ```
 入参主要关注几个字段，`source`字段为style标签中的css原始代码。`scoped`字段为style标签中是否有`scoped` attribute。`id`字段为我们在观察 DOM 结构时看到的 `data-v-xxxxx`。这个是debug时入参截图：
-![transformStyle-arg](/guide/vue-to-js/transformStyle-arg.png){data-zoomable}
+![transformStyle-arg](../images/guide/vue-to-js/transformStyle-arg.webp){data-zoomable}
 
 
 再来看看返回值`SFCStyleCompileResults`对象，主要就是`code`属性，这个是经过编译后的css字符串，已经加上了`data-v-xxxxx`。
@@ -555,11 +555,11 @@ interface SFCStyleCompileResults {
 }
 ```
 这个是debug时`compileStyleAsync`函数返回值的截图：
-![transformStyle-res](/guide/vue-to-js/transformStyle-res.png){data-zoomable}
+![transformStyle-res](../images/guide/vue-to-js/transformStyle-res.webp){data-zoomable}
 
 
 `genStyleCode`函数的执行流程图如下：
-![progress-genStyleCode](/guide/vue-to-js/progress-genStyleCode.png){data-zoomable}
+![progress-genStyleCode](../images/guide/vue-to-js/progress-genStyleCode.webp){data-zoomable}
 
 ### `transformMain`函数简化后的代码
 现在我们可以来看`transformMain`函数简化后的代码：
@@ -621,11 +621,11 @@ async function transformMain(code, filename, options, pluginContext, ssr, custom
 然后以`descriptor`对象为参数调用`genStyleCode`函数，将vue文件中的`<style>`模块代码编译成了import语句`code`字符串，比如：`import "/src/App.vue?vue&type=style&index=0&scoped=7a7a37b1&lang.css";`，赋值给`stylesCode`变量。
 
 然后将`scriptCode`、`templateCode`、`stylesCode`使用换行符`\n`拼接起来得到`resolvedCode`，这个`resolvedCode`就是一个vue文件编译成js文件的代码`code`字符串。这个是debug时`resolvedCode`变量值的截图：
-![resolvedCode](/guide/vue-to-js/resolvedCode.png){data-zoomable}
+![resolvedCode](../images/guide/vue-to-js/resolvedCode.webp){data-zoomable}
 
 # 总结
 这篇文章通过debug的方式一步一步的带你了解vue文件编译成js文件的完整流程，下面是一个完整的流程图。如果文字太小看不清，可以将图片保存下来或者放大看：
-![progress-full](/guide/vue-to-js/progress-full.png){data-zoomable}
+![progress-full](../images/guide/vue-to-js/progress-full.webp){data-zoomable}
 
 
 `@vitejs/plugin-vue-jsx`库中有个叫`transform`的钩子函数，每当vite加载模块的时候就会触发这个钩子函数。所以当import一个vue文件的时候，就会走到`@vitejs/plugin-vue-jsx`中的`transform`钩子函数中，在`transform`钩子函数中主要调用了`transformMain`函数。

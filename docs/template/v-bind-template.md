@@ -45,14 +45,14 @@ export default _sfc_main;
 从上面的render函数中可以看到三种写法生成的props对象都是一样的：` { title: $setup.title }`。props属性的key为`title`，值为`$setup.title`变量。
 
 再来看看浏览器渲染后的样子，如下图：
-![div](/template/v-bind-template/div.png){data-zoomable}
+![div](../images/template/v-bind-template/div.webp){data-zoomable}
 
 从上图中可以看到三个div标签上面都有title属性，并且属性值都是一样的。
 # `transformElement`函数
 在之前的 [transform函数](/template/transform)文章中我们讲过了在编译阶段会执行一堆transform转换函数，用于处理vue内置的v-for等指令。而v-bind指令就是在这一堆transform转换函数中的`transformElement`函数中处理的。
 
 还是一样的套路启动一个debug终端。这里以`vscode`举例，打开终端然后点击终端中的`+`号旁边的下拉箭头，在下拉中点击`Javascript Debug Terminal`就可以启动一个`debug`终端。
-![debug-terminal](/common/debug-terminal.png){data-zoomable}
+![debug-terminal](../images/common/debug-terminal.webp){data-zoomable}
 
 给`transformElement`函数打个断点，`transformElement`函数的代码位置在：`node_modules/@vue/compiler-core/dist/compiler-core.cjs.js`。
 
@@ -81,7 +81,7 @@ const transformElement = (node, context) => {
 };
 ```
 我们先来看看第一个参数`node`，如下图：
-![node](/template/v-bind-template/node.png){data-zoomable}
+![node](../images/template/v-bind-template/node.webp){data-zoomable}
 
 从上图中可以看到此时的node节点对应的就是`<div v-bind:title="title">Hello Word</div>`节点，其中的props数组中只有一项，对应的就是div标签中的`v-bind:title="title"`部分。
 
@@ -120,14 +120,14 @@ function buildProps(node, context, props = node.props) {
 }
 ```
 由于我们在调用`buildProps`函数时传的第三个参数为undefined，所以这里的props就是默认值`node.props`。如下图：
-![props](/template/v-bind-template/props.png){data-zoomable}
+![props](../images/template/v-bind-template/props.webp){data-zoomable}
 
 从上图中可以看到props数组中只有一项，props中的name字段为`bind`，说明v-bind指令还未被处理掉。
 
 并且由于我们当前node节点是第一个div标签：`<div v-bind:title="title">`，所以props中的`rawName`的值是`v-bind:title`。
 
 我们接着来看上面for循环遍历props的代码：`const directiveTransform = context.directiveTransforms[name]`，现在我们已经知道了这里的name为`bind`。那么这里的`context.directiveTransforms`对象又是什么东西呢？我们在debug终端来看看`context.directiveTransforms`，如下图：
-![directiveTransforms](/template/v-bind-template/directiveTransforms.png){data-zoomable}
+![directiveTransforms](../images/template/v-bind-template/directiveTransforms.webp){data-zoomable}
 
 从上图中可以看到`context.directiveTransforms`对象中包含许多指令的转换函数，比如`v-bind`、`v-cloak`、`v-html`、`v-model`等。
 
@@ -157,7 +157,7 @@ function createObjectExpression(properties, loc) {
 上面的代码很简单，`properties`数组就是node节点上的props数组，根据`properties`数组生成props属性对应的node节点。
 
 我们在debug终端来看看最终生成的props对象`propsExpression`是什么样的，如下图：
-![propsExpression](/template/v-bind-template/propsExpression.png){data-zoomable}
+![propsExpression](../images/template/v-bind-template/propsExpression.webp){data-zoomable}
 
 从上图中可以看到此时`properties`属性数组中已经没有了v-bind指令了，取而代之的是`key`和`value`属性。`key.content`的值为`title`，说明属性名为`title`。`value.content`的值为`$setup.title`，说明属性值为变量`$setup.title`。
 
@@ -187,12 +187,12 @@ const transformBind = (dir, _node) => {
 在debug终端来看看三种写法的`dir`参数有什么不同。
 
 第一种写法：`<div v-bind:title="title">`的`dir`如下图：
-![dir1](/template/v-bind-template/dir1.png){data-zoomable}
+![dir1](../images/template/v-bind-template/dir1.webp){data-zoomable}
 
 从上图中可以看到`dir.name`的值为`bind`，说明这个是`v-bind`指令。`dir.rawName`的值为`v-bind:title`说明没有使用缩写模式。`dir.arg`表示bind绑定的属性名称，这里绑定的是title属性。`dir.exp`表示bind绑定的属性值，这里绑定的是`$setup.title`变量。
 
 第二种写法：`<div :title="title">`的`dir`如下图：
-![dir2](/template/v-bind-template/dir2.png){data-zoomable}
+![dir2](../images/template/v-bind-template/dir2.webp){data-zoomable}
 
 从上图中可以看到第二种写法的`dir`和第一种写法的`dir`只有一项不一样，那就是`dir.rawName`。在第二种写法中`dir.rawName`的值为`:title`，说明我们这里是采用了缩写模式。
 
@@ -201,7 +201,7 @@ const transformBind = (dir, _node) => {
 答案是在parse阶段将html编译成AST抽象语法树阶段时遇到`v-bind:title`和`:title`时都会将其当做v-bind指令处理，并且将解析处理的指令绑定的属性名塞到`dir.arg`中，将属性值塞到`dir.exp`中。
 
 第三种写法：`<div :title>`的`dir`如下图：
-![dir3](/template/v-bind-template/dir3.png){data-zoomable}
+![dir3](../images/template/v-bind-template/dir3.webp){data-zoomable}
 
 第三种写法也是缩写模式，并且将属性值也一起给省略了。所以这里的`dir.exp`存储的属性值为undefined。其他的和第二种缩写模式基本一样。
 
@@ -233,12 +233,12 @@ function createSimpleExpression(
 }
 ```
 经过这一步处理后 `dir.exp`变量的值如下图：
-![exp1](/template/v-bind-template/exp1.png){data-zoomable}
+![exp1](../images/template/v-bind-template/exp1.webp){data-zoomable}
 
 还记得前面两种模式的 `dir.exp.content`的值吗？他的值是`$setup.title`，表示属性值为`setup`中定义的`title`变量。而我们这里的`dir.exp.content`的值为`title`变量，很明显是不对的。
 
 所以需要执行`exp = dir.exp = processExpression(exp, context)`将`dir.exp.content`中的值替换为`$setup.title`，执行`processExpression`函数后的`dir.exp`变量的值如下图：
-![exp2](/template/v-bind-template/exp2.png){data-zoomable}
+![exp2](../images/template/v-bind-template/exp2.webp){data-zoomable}
 
 
 我们来看`transformBind`函数中的最后一块return的代码：

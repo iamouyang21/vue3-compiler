@@ -34,7 +34,7 @@ function validate() {
 </script>
 ```
 在浏览器中点击父组件的button按钮，可以看到控制台中打印的是`undefined`，并且子组件内的`validate`方法也没有执行。因为子组件使用了setup，默认是不会暴露setup中定义的属性和方法。如下图：
-![no-defineExpose](/script/defineExpose/no-defineExpose.png){data-zoomable}
+![no-defineExpose](../images/script/defineExpose/no-defineExpose.webp){data-zoomable}
 
 
 我们再来看看子组件`child.vue`使用`defineExpose`宏的例子，代码如下：
@@ -52,15 +52,15 @@ defineExpose({
 </script>
 ```
 在浏览器中点击父组件的button按钮，可以看到控制台中打印的不再是`undefined`，子组件内的`validate`方法也执行了。如下图：
-![has-defineExpose](/script/defineExpose/has-defineExpose.png){data-zoomable}
+![has-defineExpose](../images/script/defineExpose/has-defineExpose.webp){data-zoomable}
 
 # 编译后的代码
 首先需要在浏览器中找到编译后的使用`defineExpose`宏的`child.vue`文件，在network面板中找到`child.vue`，然后右键点击Open in Sources panel就可以在source面板中找到编译后的`child.vue`。如下图：
-![network](/script/defineExpose/network.png){data-zoomable}
+![network](../images/script/defineExpose/network.webp){data-zoomable}
 
 
 为了要在浏览器中debug，我们还需要在设置中关闭浏览器的javascript source map，如下图：
-![source-map](/script/defineExpose/source-map.png){data-zoomable}
+![source-map](../images/script/defineExpose/source-map.webp){data-zoomable}
 
 
 现在我们来看看编译后的`child.vue`文件，代码如下：
@@ -86,11 +86,11 @@ _sfc_main.render = _sfc_render;
 export default _sfc_main;
 ```
 从上面可以看到`_sfc_main`对象中的`setup`对应的就是我们源代码`<script setup>`中的内容，并且`defineExpose`宏函数也不在了，变成了一个`__expose`方法（`defineExpose`宏函数如何编译成`__expose`方法我们会在下一篇文章讲）。如下图：
-![convert](/script/defineExpose/convert.png){data-zoomable}
+![convert](../images/script/defineExpose/convert.webp){data-zoomable}
 
 # `expose`方法
 给`__expose`方法打个断点，刷新页面此时断点停留在`__expose`方法上面。点击`step into`进入到`__expose`方法内部，如下图：
-![step-into](/script/defineExpose/step-into.png){data-zoomable}
+![step-into](../images/script/defineExpose/step-into.webp){data-zoomable}
 
 
 进入到`__expose`方法内部，我们发现`__expose`方法是在一个`createSetupContext`函数中定义的。在我们这个场景中`createSetupContext`函数简化后的代码如下：
@@ -107,7 +107,7 @@ function createSetupContext(instance) {
 }
 ```
 我们先来看看函数中的`instance`变量，我想你通过名字应该已经猜到了他就是当前vue实例对象。如下图：
-![instance](/script/defineExpose/instance.png){data-zoomable}
+![instance](../images/script/defineExpose/instance.webp){data-zoomable}
 
 在vue实例对象中有我们熟悉的data方法、directives和componens属性等。
 
@@ -140,7 +140,7 @@ function getExposeProxy(instance) {
 前面我们讲过了`defineExpose`宏函数中定义了想要暴露出来的属性和方法，经过编译后`defineExpose`宏函数变成了`__expose`方法。执行`__expose`方法后会将子组件想要暴露的属性或者方法组成的对象赋值给vue实例上的`exposed`属性，也就是`instance.exposed`。
 
 在上面的`getExposeProxy`函数中就是返回了`instance.exposed`的`Proxy`对象，当我们使用`child.value.validate`访问子组件的`validate`方法，其实就是访问的是`instance.exposed`对象中的`validate`方法，而`instance.exposed`中的`validate`方法就是`defineExpose`宏函数暴露的`validate`方法。如下图：
-![full-progress](/script/defineExpose/full-progress.png){data-zoomable}
+![full-progress](../images/script/defineExpose/full-progress.webp){data-zoomable}
 
 # 总结
 父组件想要访问子组件暴露的`validate`方法主要分为下面四步：

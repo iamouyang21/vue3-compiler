@@ -43,7 +43,7 @@ if (count.value) {
 `transformMain`函数中会调用`genScriptCode`、`genTemplateCode`、`genStyleCode`，分别对应的作用是将`vue`文件中的`<script>`模块编译为浏览器可直接运行的`js`代码、将`<template>`模块编译为`render`函数、将`<style>`模块编译为导入`css`文件的`import`语句。**`genScriptCode`函数底层调用的就是`vue/compiler-sfc`包的`compileScript`函数。**
 
 一样的套路，首先我们在vscode的打开一个`debug`终端。
-![debug-terminal](/common/debug-terminal.png){data-zoomable}
+![debug-terminal](../images/common/debug-terminal.webp){data-zoomable}
 
 
 然后在`node_modules`中找到`vue/compiler-sfc`包的`compileScript`函数打上断点，`compileScript`函数位置在`/node_modules/@vue/compiler-sfc/dist/compiler-sfc.cjs.js`。
@@ -65,7 +65,7 @@ defineProps({
 
 在我们这个场景只关注`scriptSetup`属性，`sfc.scriptSetup.content`的值就是`<script setup>`模块中`code`代码字符串，`sfc.source`的值就是`vue`文件中的源代码code字符串。详情查看下图：
 
-![common-child](/script/defineProps/common-child.png){data-zoomable}
+![common-child](../images/script/defineProps/common-child.webp){data-zoomable}
 
 
 `compileScript`函数内包含了编译`script`模块的所有的逻辑，代码很复杂，光是源代码就接近1000行。这篇文章我们不会去通读`compileScript`函数的所有功能，只会讲处理`defineProps`相关的代码。下面这个是我简化后的代码：
@@ -176,7 +176,7 @@ function parse(input: string, offset: number): Program {
 ```
 我们在前面已经讲过了`descriptor.scriptSetup.content`的值就是`vue`文件中的`<script setup>`模块的代码`code`字符串，`parse`函数中调用了`babel`提供的`parser`函数，将`vue`文件中的`<script setup>`模块的代码`code`字符串转换成`AST抽象语法树`。
 
-![parser](/script/defineProps/parser.png){data-zoomable}
+![parser](../images/script/defineProps/parser.webp){data-zoomable}
 
 
 现在我们再来看`compileScript`函数中的这几行代码你理解起来就没什么难度了，这里的`scriptSetupAst`变量就是由`vue`文件中的`<script setup>`模块的代码转换成的`AST抽象语法树`。
@@ -187,7 +187,7 @@ const endOffset = ctx.endOffset;
 const scriptSetupAst = ctx.scriptSetupAst;
 ```
 流程图如下：
-![progress1](/script/defineProps/progress1.png){data-zoomable}
+![progress1](../images/script/defineProps/progress1.webp){data-zoomable}
 
 ## `processDefineProps`函数
 我们接着将断点走到`for`循环开始处，代码如下：
@@ -202,7 +202,7 @@ for (const node of scriptSetupAst.body) {
 }
 ```
 遍历`AST抽象语法树`，如果当前节点类型为`ExpressionStatement`表达式语句，并且`processDefineProps`函数执行结果为`true`就调用`ctx.s.remove`方法。这会儿断点还在`for`循环开始处，在控制台执行`ctx.s.toString()`看看当前的`code`代码字符串。
-![for-toString](/script/defineProps/for-toString.png){data-zoomable}
+![for-toString](../images/script/defineProps/for-toString.webp){data-zoomable}
 
 
 从图上可以看见此时`toString`的执行结果还是和之前的`common-child.vue`源代码是一样的，并且很明显我们的`defineProps`是一个表达式语句，所以会执行`processDefineProps`函数。我们将断点走到调用`processDefineProps`的地方，看到简化过的`processDefineProps`函数代码如下：
@@ -231,7 +231,7 @@ export function isCallOf(node, test) {
 }
 ```
 `isCallOf`函数接收两个参数，第一个参数`node`是当前的`node`节点，第二个参数`test`是要判断的函数名称，在我们这里是写死的`"defineProps"`字符串。我们在`debug console`中将`node.type`、`node.callee.type`、`node.callee.name`的值打印出来看看。
-![isCallOf](/script/defineProps/isCallOf.png){data-zoomable}
+![isCallOf](../images/script/defineProps/isCallOf.webp){data-zoomable}
 
 
 从图上看到`node.type`、`node.callee.type`、`node.callee.name`的值后，可以证明我们的猜测是正确的这里`isCallOf`的作用是判断当前的`node`节点的类型是不是在调用`defineProps`函数。
@@ -276,7 +276,7 @@ for (const node of scriptSetupAst.body) {
 遍历`AST语法树`，如果当前节点类型是`ExpressionStatement`表达式语句，再执行`processDefineProps`判断当前`node`节点是否是执行的`defineProps`函数。
 
 如果是`defineProps`函数就调用`ctx.s.remove`方法将调用`defineProps`函数的代码从源代码中删除掉。此时我们在`debug console`中执行`ctx.s.toString()`,看到我们的`code`代码字符串中已经没有了`defineProps`了：
-![remove-toString](/script/defineProps/remove-toString.png){data-zoomable}
+![remove-toString](../images/script/defineProps/remove-toString.webp){data-zoomable}
 
 
 现在我们能够回答第一个问题了：
@@ -284,7 +284,7 @@ for (const node of scriptSetupAst.body) {
 **为什么`defineProps`不需要`import`导入？**
 
 因为在编译过程中如果当前`AST抽象语法树`的节点类型是`ExpressionStatement`表达式语句，并且调用的函数是`defineProps`，那么就调用`remove`方法将调用`defineProps`函数的代码给移除掉。既然`defineProps`语句已经被移除了，自然也就不需要`import`导入了`defineProps`了。
-![progress2](/script/defineProps/progress2.png){data-zoomable}
+![progress2](../images/script/defineProps/progress2.webp){data-zoomable}
 
 ## `genRuntimeProps`函数
 接着在`compileScript`函数中执行了两条`remove`代码：
@@ -293,11 +293,11 @@ ctx.s.remove(0, startOffset);
 ctx.s.remove(endOffset, source.length);
 ```
 这里的`startOffset`表示`script`标签中第一个代码开始的位置，  所以`ctx.s.remove(0, startOffset);`的意思是删除掉包含`<script setup>`开始标签前面的所有内容，也就是删除掉`template`模块的内容和`<script setup>`开始标签。这行代码执行完后我们再看看`ctx.s.toString()`的值：
-![remove1](/script/defineProps/remove1.png){data-zoomable}
+![remove1](../images/script/defineProps/remove1.webp){data-zoomable}
 
 
 接着执行`ctx.s.remove(endOffset, source.length);`，这行代码的意思是将`</script >`包含结束标签后面的内容全部删掉，也就是删除`</script >`结束标签和`<style>`模块。这行代码执行完后我们再来看看`ctx.s.toString()`的值：
-![remove2](/script/defineProps/remove2.png){data-zoomable}
+![remove2](../images/script/defineProps/remove2.webp){data-zoomable}
 
 由于我们的`common-child.vue`的`script`模块中只有一个`defineProps`函数，所以当移除掉`template`模块、`style`模块、`script`开始标签和结束标签后就变成了一个空字符串。如果你的`script`模块中还有其他`js`业务代码，当代码执行到这里后就不会是空字符串，而是那些`js`业务代码。
 
@@ -327,11 +327,11 @@ getString(node, scriptSetup = true) {
 }
 ```
 我们前面已经讲过了`descriptor`对象是由`vue`文件编译而来，其中的`scriptSetup`属性就是对应的`<script setup>`模块。我们这里没有传入`scriptSetup`，所以`block`的值为`this.descriptor.scriptSetup`。同样我们前面也讲过`scriptSetup.content`的值是`<script setup>`模块`code`代码字符串。请看下图：
-![block-content](/script/defineProps/block-content.png){data-zoomable}
+![block-content](../images/script/defineProps/block-content.webp){data-zoomable}
 
 
 这里传入的`node`节点就是我们前面存在上下文中`ctx.propsRuntimeDecl`，也就是在调用`defineProps`函数时传入的参数节点，`node.start`就是参数节点开始的位置，`node.end`就是参数节点的结束位置。所以使用`content.slice`方法就可以截取出来调用`defineProps`函数时传入的`props`定义。请看下图：
-![slice](/script/defineProps/slice.png){data-zoomable}
+![slice](../images/script/defineProps/slice.webp){data-zoomable}
 
 
 现在我们再回过头来看`compileScript`函数中的调用`genRuntimeProps`函数的代码你就能很容易理解了：
@@ -341,7 +341,7 @@ const propsDecl = genRuntimeProps(ctx);
 if (propsDecl) runtimeOptions += `\n  props: ${propsDecl},`;
 ```
 这里的`propsDecl`在我们这个场景中就是使用`slice`截取出来的`props`定义，再使用`\n  props: ${propsDecl},`进行字符串拼接就得到了`runtimeOptions`的值。如图：
-![runtimeOptions](/script/defineProps/runtimeOptions.png){data-zoomable}
+![runtimeOptions](../images/script/defineProps/runtimeOptions.webp){data-zoomable}
 
 
 看到`runtimeOptions`的值是不是就觉得很熟悉了，又有`name`属性，又有`props`属性。其实就是`vue`组件对象的`code`字符串的一部分。`name`拼接逻辑是在省略的代码中，我们这篇文章只讲`props`相关的逻辑，所以`name`不在这篇文章的讨论范围内。
@@ -354,7 +354,7 @@ if (propsDecl) runtimeOptions += `\n  props: ${propsDecl},`;
 
 再使用`slice`方法并且传入开始位置和结束位置，从`<script setup>`模块的代码字符串中截取到`props`定义的字符串。然后将截取到的`props`定义的字符串拼接到`vue`组件对象的字符串中，这样`vue`组件对象中就有了一个`props`属性，这个`props`属性在`template`模版中可以直接使用。
 
-![progress3](/script/defineProps/progress3.png){data-zoomable}
+![progress3](../images/script/defineProps/progress3.webp){data-zoomable}
 
 ## 拼接成完整的浏览器运行时`js`代码
 我们再来看`compileScript`函数中的最后一坨代码；
@@ -378,18 +378,18 @@ return {
 };
 ```
 这里先调用了`ctx.s.prependLeft`方法给字符串开始的地方插入了一串字符串，这串拼接的字符串看着脑瓜子痛，我们直接在`debug console`上面看看要拼接的字符串是什么样的：
-![append](/script/defineProps/append.png){data-zoomable}
+![append](../images/script/defineProps/append.webp){data-zoomable}
 
 
 看到这串你应该很熟悉，除了前面我们拼接的`name`和`props`之外还有部分`setup`编译后的代码，其实这就是`vue`组件对象的`code`代码字符串的一部分。
 
 当断点执行完`prependLeft`方法后，我们在`debug console`中再看看此时的`ctx.s.toString()`的值是什么样的：
-![last-toString](/script/defineProps/last-toString.png){data-zoomable}
+![last-toString](../images/script/defineProps/last-toString.webp){data-zoomable}
 
 从图上可以看到`vue`组件对象上的`name`属性、`props`属性、`setup`函数基本已经拼接的差不多了，只差一个`})`结束符号，所以执行`ctx.s.appendRight(endOffset, `})`);`将结束符号插入进去。
 
 我们最后再来看看`compileScript`函数的返回对象中的`content`属性，也就是`ctx.s.toString()`，`content`属性的值就是`vue`组件中的`<script setup>`模块编译成浏览器可执行的`js`代码字符串。
-![full](/script/defineProps/full.png){data-zoomable}
+![full](../images/script/defineProps/full.webp){data-zoomable}
 
 ## 为什么不能在非`setup`顶层使用`defineProps`？
 同样的套路我们来`debug`看看`if-child.vue`文件，先来回忆一下`if-child.vue`文件的代码。
@@ -410,7 +410,7 @@ if (count.value) {
 </script>
 ```
 将断点走到`compileScript`函数的遍历`AST抽象语法树`的地方，我们看到`scriptSetupAst.body`数组中有三个`node`节点。
-![if-node-list](/script/defineProps/if-node-list.png){data-zoomable}
+![if-node-list](../images/script/defineProps/if-node-list.webp){data-zoomable}
 
 从图中我们可以看到这三个`node`节点类型分别是：`ImportDeclaration`、`VariableDeclaration`、`IfStatement`。很明显这三个节点对应的是我们源代码中的`import`语句、`const`定义变量、`if `模块。我们再来回忆一下`compileScript`函数中的遍历`AST抽象语法树`的代码：
 ```js

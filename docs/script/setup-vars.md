@@ -100,7 +100,7 @@ setup函数的参数有两个，第一个参数为组件的 `props`。第二个
 在之前的 [vue文件编译成js文件](/guide/vue-to-js)文章中已经讲过了vue的script模块中的内容是由`@vue/compiler-sfc`包中的`compileScript`函数处理的。
 
 首先我们需要启动一个debug终端。这里以`vscode`举例，打开终端然后点击终端中的`+`号旁边的下拉箭头，在下拉中点击`Javascript Debug Terminal`就可以启动一个`debug`终端。
-![debug-terminal](/common/debug-terminal.png){data-zoomable}
+![debug-terminal](../images/common/debug-terminal.webp){data-zoomable}
 
 然后在`node_modules`中找到`vue/compiler-sfc`包的`compileScript`函数打上断点，`compileScript`函数位置在`/node_modules/@vue/compiler-sfc/dist/compiler-sfc.cjs.js`。接下来我们先看看简化后的`compileScript`函数源码。
 ## 简化后的`compileScript`函数
@@ -260,7 +260,7 @@ ${exposeCall}`
 在我们这个场景只关注`scriptSetup`属性，`sfc.scriptSetup.content`的值就是`<script setup>`模块中`code`代码字符串，
 
 `sfc.source`的值就是`vue`文件中的源代码code字符串。`sfc.scriptSetup.loc.start.offset`为`<script setup>`中内容开始位置，`sfc.scriptSetup.loc.end.offset`为`<script setup>`中内容结束位置。详情查看下图：
-![sfc](/script/setup-vars/sfc.png){data-zoomable}
+![sfc](../images/script/setup-vars/sfc.webp){data-zoomable}
 
 
 我们再来看`compileScript`函数中的内容，在`compileScript`函数中包含了从`<script setup>`语法糖到setup函数的完整流程。乍一看可能比较难以理解，所以我将其分为七块。
@@ -365,14 +365,14 @@ for (const node of scriptSetupAst.body) {
 }
 ```
 在这一部分的代码中使用for循环遍历了两次`scriptSetupAst.body`，`scriptSetupAst.body`为script中的代码对应的AST抽象语法树中body的内容，如下图：
-![body](/script/setup-vars/body.png){data-zoomable}
+![body](../images/script/setup-vars/body.webp){data-zoomable}
 
 从上图中可以看到`scriptSetupAst.body`数组有6项，分别对应的是script模块中的6块代码。
 
 第一个for循环中使用if判断`node.type === "ImportDeclaration"`，也就是判断是不是import语句。如果是import语句，那么import的内容肯定是顶层绑定，需要将import导入的内容存储到`ctx.userImports`对象中。注：后面会专门写一篇文章来讲如何收集所有的import导入。
 
 通过这个for循环已经将所有的import导入收集到了`ctx.userImports`对象中了，在debug终端看看此时的`ctx.userImports`，如下图：
-![userImports](/script/setup-vars/userImports.png){data-zoomable}
+![userImports](../images/script/setup-vars/userImports.webp){data-zoomable}
 
 从上图中可以看到在`ctx.userImports`中收集了三个import导入，分别是`Child`组件、`format`函数、`ref`函数。
 
@@ -385,7 +385,7 @@ for (const node of scriptSetupAst.body) {
 从前面的`scriptSetupAst.body`图中可以看到if模块的type为`IfStatement`，明显不属于上面的这四种类型，所以不会执行`walkDeclaration`函数将里面的`innerContent`变量收集起来后面再塞到return对象中。**这也就解释了为什么非顶层绑定不能在template中直接使用。**
 
 我们在debug终端来看看执行完第二个for循环后`setupBindings`对象是什么样的，如下图：
-![setupBindings](/script/setup-vars/setupBindings.png){data-zoomable}
+![setupBindings](../images/script/setup-vars/setupBindings.webp){data-zoomable}
 
 从上图中可以看到在`setupBindings`对象中收集`msg`和`title`这两个顶层变量。其中的`setup-ref`表示当前变量是一个ref定义的变量，`setup-let`表示当前变量是一个let定义的变量。
 ## 移除template模块和style模块
@@ -401,12 +401,12 @@ ctx.s.remove(endOffset, source.length);
 `ctx.s.remove(endOffset, source.length)`的作用是：移除style中的内容和script的结束标签。
 
 我们在debug终端看看执行这两个`remove`方法之前的code代码字符串是什么样的，如下图：
-![before-remove](/script/setup-vars/before-remove.png){data-zoomable}
+![before-remove](../images/script/setup-vars/before-remove.webp){data-zoomable}
 
 从上图中可以看到此时的code代码字符串和我们源代码差不多，唯一的区别就是那几个import导入已经被提取到script标签外面去了（这个是在前面第一个for循环处理import导入的时候处理的）。
 
 将断点走到执行完这两个remove方法之后，在debug终端看看此时的code代码字符串，如下图：
-![after-remove](/script/setup-vars/after-remove.png){data-zoomable}
+![after-remove](../images/script/setup-vars/after-remove.webp){data-zoomable}
 
 从上图中可以看到执行这两个`remove`方法后template模块、style模块（虽然本文demo中没有写style模块）、script开始标签、script结束标签都已经被删除了。唯一剩下的就是script模块中的内容，还有之前提出去的那几个import导入。
 ## 将顶层绑定的元数据存储到`ctx.bindingMetadata`
@@ -447,11 +447,11 @@ if (destructureElements.length) {
 答案是setup的return的对象有时会直接返回顶层变量（比如demo中的`msg`常量）。有时只会返回变量的访问器属性 get（比如demo中的`format`函数）。有时会返回变量的访问器属性 get和set（比如demo中的`title`变量）。所以才需要一个`ctx.bindingMetadata`对象来存储这些顶层绑定的元数据。
 
 将断点走到执行完这两个for循环的地方，在debug终端来看看此时收集的`ctx.bindingMetadata`对象是什么样的，如下图：
-![bindingMetadata](/script/setup-vars/bindingMetadata.png){data-zoomable}
+![bindingMetadata](../images/script/setup-vars/bindingMetadata.webp){data-zoomable}
 
 
 最后一块代码也很简单进行字符串拼接生成setup函数的参数，第一个参数为组件的props、第二个参数为`expose`方法组成的对象。如下图：
-![args](/script/setup-vars/args.png){data-zoomable}
+![args](../images/script/setup-vars/args.webp){data-zoomable}
 
 ## 生成return对象
 接着将断点走到第五部分，代码如下：
@@ -503,7 +503,7 @@ ctx.s.appendRight(
 后面生成setup函数的return对象就是通过遍历这个`allBindings`对象实现的。这也就解释了为什么从vue中import导入的ref函数也是顶层绑定，为什么他没有被setup函数返回。因为只有在template中使用的import导入顶层绑定才会被setup函数返回。
 
 将断点走到遍历`ctx.userImports`对象之后，在debug终端来看看此时的`allBindings`对象是什么样的，如下图：
-![allBindings](/script/setup-vars/allBindings.png){data-zoomable}
+![allBindings](../images/script/setup-vars/allBindings.webp){data-zoomable}
 
 从上图中可以看到此时的`allBindings`对象中存了四个需要return的顶层绑定。
 
@@ -537,14 +537,14 @@ else {
 这个else中就是普通的数据属性了，对应我们demo中的就是`msg`变量和`Child`组件。
 
 将断点走到生成return对象之后，在debug终端来看看此时生成的return对象是什么样的，如下图：
-![returned](/script/setup-vars/returned.png){data-zoomable}
+![returned](../images/script/setup-vars/returned.webp){data-zoomable}
 
 从上图中可以看到此时已经生成了return对象啦。
 
 前面我们只生成了return对象，但是还没将其插入到要生成的code字符串中，所以需要执行`ctx.s.appendRight`方法在末尾插入return的代码。
 
 将断点走到执行完`ctx.s.appendRight`方法后，在debug终端来看看此时的code代码字符串是什么样的，如下图：
-![after-returned](/script/setup-vars/after-returned.png){data-zoomable}
+![after-returned](../images/script/setup-vars/after-returned.webp){data-zoomable}
 
 从上图中可以看到此时的code代码字符串中多了一块return的代码。
 ## 生成setup函数定义
@@ -562,10 +562,10 @@ ${exposeCall}`
 ctx.s.appendRight(endOffset, `})`);
 ```
 这部分的代码很简单，调用`ctx.s.prependLeft`方法从左边插入一串代码。插入的这串代码就是简单的字符串拼接，我们在debug终端来看看要插入的代码是什么样的，如下图：
-![sfc-main](/script/setup-vars/sfc-main.png){data-zoomable}
+![sfc-main](../images/script/setup-vars/sfc-main.webp){data-zoomable}
 
 是不是觉得上面这块需要插入的代码看着很熟悉，他就是编译后的`_sfc_main`对象除去setup函数内容的部分。将断点走到`ctx.s.appendRight`方法执行之后，再来看看此时的code代码字符串是什么样的，如下图：
-![setup-fn](/script/setup-vars/setup-fn.png){data-zoomable}
+![setup-fn](../images/script/setup-vars/setup-fn.webp){data-zoomable}
 
 从上图中可以看到此时的setup函数基本已经生成完了。
 ## 插入import vue语句
@@ -583,12 +583,12 @@ if (ctx.helperImports.size > 0) {
 }
 ```
 将断点走到`ctx.s.prepend`函数执行后，再来看看此时的code代码字符串，如下图：
-![full-code](/script/setup-vars/full-code.png){data-zoomable}
+![full-code](../images/script/setup-vars/full-code.webp){data-zoomable}
 
 从上图中可以看到已经生成了完整的setup函数啦。
 # 总结
 整个流程图如下：
-![full-progress](/script/setup-vars/full-progress.png){data-zoomable}
+![full-progress](../images/script/setup-vars/full-progress.webp){data-zoomable}
 
 
 - 遍历`<script setup>`中的代码将所有的import导入收集到`ctx.userImports`对象中。

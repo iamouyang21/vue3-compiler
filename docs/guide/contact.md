@@ -11,5 +11,9 @@
 
 可以加我微信（heavenyjj0012），备注「揭秘」：
 
-![wx](/guide/wx.png)
+![wx](../images/guide/wx.webp){data-zoomable}
 
+
+也可以关注我的公众号【前端欧阳】，最新原创文章是在公众号内发布
+
+![qrcode](../images/guide/qrcode.webp){data-zoomable}

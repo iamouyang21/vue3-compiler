@@ -26,24 +26,24 @@ const primaryColor = ref("red");
 我们在script模块中定义了一个响应式变量`primaryColor`，并且在style中使用`v-bind`指令将`primaryColor`变量绑定到color样式上面。
 
 我们在浏览器的network面板中来看看编译后的js文件，如下图：
-![index-vue](/style/v-bind-style/index-vue.png){data-zoomable}
+![index-vue](../images/style/v-bind-style/index-vue.webp){data-zoomable}
 
 从上图中可以看到在network面板中编译后的index.vue文件有两个，并且第二个里面有一些query参数，其中的`type=style`就表示当前文件的内容对应的是style模块。第一个index.vue对应的是template和script模块中的内容。
 
 我们来看看第一个index.vue，如下图：
-![setup](/style/v-bind-style/setup.png){data-zoomable}
+![setup](../images/style/v-bind-style/setup.webp){data-zoomable}
 
 从上图中可以看到setup函数是script模块编译后的内容，在`setup`函数中多了一个`_useCssVars`函数，从名字你应该猜到了，这个函数的作用是和css变量有关系。别着急，我们接下来会详细去讲`_useCssVars`函数。
 
 我们再来看看第二个index.vue，如下图：
-![style](/style/v-bind-style/style.png){data-zoomable}
+![style](../images/style/v-bind-style/style.webp){data-zoomable}
 
 从上图中可以看到这个index.vue确实对应的是style模块中的内容，并且原本的`color: v-bind(primaryColor);`已经变成了`color: var(--c845efc6-primaryColor);`。
 
 很明显浏览器是不认识`v-bind(primaryColor);`指令的，所以经过编译后就变成了浏览器认识的css变量`var(--c845efc6-primaryColor);`。
 
 我们接着在elements面板中来看看此时class值为block的span元素，如下图：
-![elements](/style/v-bind-style/elements.png){data-zoomable}
+![elements](../images/style/v-bind-style/elements.webp){data-zoomable}
 
 从上图中可以看到color的值为css变量`var(--c845efc6-primaryColor)`，这个我们前面讲过。不同的是这里从父级元素div中继承过来一个`--c845efc6-primaryColor: red;`。
 
@@ -60,7 +60,7 @@ const primaryColor = ref("red");
 我们需要给`doCompileStyle`函数打个断点，`doCompileStyle`函数的代码位置在：`node_modules/@vue/compiler-sfc/dist/compiler-sfc.cjs.js`。
 
 还是一样的套路启动一个debug终端。这里以`vscode`举例，打开终端然后点击终端中的`+`号旁边的下拉箭头，在下拉中点击`Javascript Debug Terminal`就可以启动一个`debug`终端。
-![debug-terminal](/common/debug-terminal.png){data-zoomable}
+![debug-terminal](../images/common/debug-terminal.webp){data-zoomable}
 
 在debug终端执行`yarn dev`，在浏览器中打开对应的页面，比如：[http://localhost:5173/](http://localhost:5173/) 。
 
@@ -114,7 +114,7 @@ function doCompileStyle(options) {
 
 在执行`postcss`对css代码进行转换之前我们在debug终端来看看此时的css代码是什么样的，如下图：
 
-![source](/style/v-bind-style/source.png){data-zoomable}
+![source](../images/style/v-bind-style/source.webp){data-zoomable}
 
 从上图中可以看到此时的`options.source`中还是`v-bind(primaryColor)`指令。
 ## `cssVarsPlugin`插件
@@ -154,7 +154,7 @@ const cssVarsPlugin = (opts) => {
 这里使用到了`Declaration`钩子函数，css中每个具体的样式都会触发这个`Declaration`钩子函数。
 
 给`Declaration`钩子函数打个断点，当`post-css`处理到`color: v-bind(primaryColor);`时就会走到这个断点中。如下图：
-![before-decl](/style/v-bind-style/before-decl.png){data-zoomable}
+![before-decl](../images/style/v-bind-style/before-decl.webp){data-zoomable}
 
 将字符串`v-bind(primaryColor)`赋值给变量`value`，接着执行`if (vBindRE.test(value))`。`vBindRE`是一个正则表达式，这里的意思是当前css的值是使用了v-bind指令才走到if语句里面。
 
@@ -167,7 +167,7 @@ const cssVarsPlugin = (opts) => {
 为了处理上面这种多个`v-bind`指令组成的css值，所以就需要使用while循环搭配`exec`方法。正则表达式使用了global标志位的时候，js的[`RegExp`](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/RegExp) 对象是*有状态*的，它们会将上次成功匹配后的位置记录在 [`lastIndex`](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/RegExp/lastIndex) 属性中。使用此特性，`exec()` 可用来对单个字符串中的多次匹配结果进行逐条的遍历。
 
 在debug终端来看看此时的`match`数组是什么样的，如下图：
-![match](/style/v-bind-style/match.png){data-zoomable}
+![match](../images/style/v-bind-style/match.webp){data-zoomable}
 
 从上图中可以看到`match[0]`的值是正则表达式匹配的字符串，在我们这里匹配的字符串是`v-bind(`。`match.index`的值为匹配到的字符位于原始字符串的基于 0 的索引值。
 
@@ -263,24 +263,24 @@ ${genCssVarsCode(sfc.cssVars, ctx.bindingMetadata, scopeId, !!options.isProd)}
 - `ctx.s.prependLeft`：给编译后的js代码在指定`index`的前面插入字符串。
 
 给`ctx.s.prependLeft`方法打个断点，在debug终端使用`ctx.s.toString`方法来看看此时由script模块编译成的js代码是什么样的，如下图：
-![before-append](/style/v-bind-style/before-append.png){data-zoomable}
+![before-append](../images/style/v-bind-style/before-append.webp){data-zoomable}
 
 从上图中可以看到此时生成的js代码code字符串只有一条`import`语句和定义`primaryColor`变量。
 
 由于篇幅有限我们就不深入到`genCssVarsCode`函数了，这个`genCssVarsCode`函数会生成`useCssVars`函数的调用。我们在debug终端来看看生成的code代码字符串是什么样的，如下图：
-![genCssVarsCode](/style/v-bind-style/genCssVarsCode.png){data-zoomable}
+![genCssVarsCode](../images/style/v-bind-style/genCssVarsCode.webp){data-zoomable}
 
 从上图中可以看到`genCssVarsCode`函数生成了一个`useCssVars`函数。
 
 执行`ctx.s.prependLeft`函数后会将生成的`useCssVars`函数插入到生成的js code代码字符串的前面，我们在debug终端来看看，如下图：
-![after-append](/style/v-bind-style/after-append.png){data-zoomable}
+![after-append](../images/style/v-bind-style/after-append.webp){data-zoomable}
 
 从上图中可以看到此时的js code代码字符串中已经有了一个`useCssVars`函数了。
 # 执行`useCssVars`函数
 前面我们讲过了编译时经过`cssVarsPlugin`这个`post-css`插件处理后，`v-bind(primaryColor)`指令就会编译成了css变量`var(--c845efc6-primaryColor)`。这里只是使用css变量值的地方，那么这个css变量的值又是在哪里定义的呢？答案是在`useCssVars`函数中。
 
 在开始我们讲过了编译后的setup函数中多了一个`useCssVars`函数，所以我们给`useCssVars`函数打个断点，刷新浏览器此时代码就会走到断点中了。如下图：
-![useCssVars](/style/v-bind-style/useCssVars.png){data-zoomable}
+![useCssVars](../images/style/v-bind-style/useCssVars.webp){data-zoomable}
 
 从上图中可以看到执行`useCssVars`函数时传入了一个回调函数作为参数，这个回调函数返回了一个对象。
 
@@ -347,7 +347,7 @@ function setVarsOnNode(el: Node, vars) {
 由于span元素的color经过编译后已经变成了css变量`var(--c845efc6-primaryColor)`，并且从根节点继承过来css变量`--c845efc6-primaryColor`的值为`red`，所以最终span元素的color值为`red`。
 # 总结
 下面这个是我总结的流程图，如下（**搭配流程图后面的文字解释一起服用效果最佳**）：
-![full-progress](/style/v-bind-style/full-progress.png){data-zoomable}
+![full-progress](../images/style/v-bind-style/full-progress.webp){data-zoomable}
 
 
 编译阶段script模块是由`compileScript`函数处理的，`compileScript`函数会去执行一个`genCssVarsCode`函数。这个函数会返回一个`useCssVars`函数的调用。然后在`compileScript`函数中会调用`ctx.s.prependLeft`方法将生成的`useCssVars`函数插入到编译后的setup函数中。

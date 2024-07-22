@@ -4,8 +4,6 @@ import { defineConfig } from "vitepress";
 export default defineConfig({
   title: "vue3编译原理揭秘",
   description: "通过debug的方式带你搞清楚vue3中的编译黑魔法",
-
-  cleanUrls: true,
   ignoreDeadLinks: true,
   head: [["link", { rel: "icon", href: "/logo.svg" }]],
   themeConfig: {

@@ -37,7 +37,7 @@ const msgList = ref([
 
 ```
 [vue文件编译成js文件](/guide/vue-to-js) 文章中我们已经知道了在使用vite的情况下template编译为render函数是在node端完成的。所以我们需要启动一个debug终端，才可以在node端打断点。这里以vscode举例，首先我们需要打开终端，然后点击终端中的`+`号旁边的下拉箭头，在下拉中点击`Javascript Debug Terminal`就可以启动一个debug终端。
-![debug-terminal](/common/debug-terminal.png){data-zoomable}
+![debug-terminal](../images/common/debug-terminal.webp){data-zoomable}
 
 `compileTemplate`函数在`node_modules/@vue/compiler-sfc/dist/compiler-sfc.cjs.js`文件中，找到`compileTemplate`函数打上断点，然后在debug终端中执行`yarn dev`（这里是以`vite`举例）。在浏览器中访问 [http://localhost:5173/](http://localhost:5173/)，此时断点就会走到`compileTemplate`函数中了。在我们这个场景中`compileTemplate`函数简化后的代码非常简单，代码如下：
 ```js
@@ -64,7 +64,7 @@ function doCompileTemplate({
 }
 ```
 在`doCompileTemplate`函数中代码同样也很简单，我们在debug终端中看看`compiler`、`source`、`inAST`这三个变量的值是长什么样的。如下图：
-![doCompileTemplate](/template/baseCompile/doCompileTemplate.png){data-zoomable}
+![doCompileTemplate](../images/template/baseCompile/doCompileTemplate.webp){data-zoomable}
 
 
 从上图中我们可以看到此时的`compiler`变量的值为`undefined`，`source`变量的值为template模块中的代码，`inAST`的值为由template模块编译而来的AST抽象语法树。不是说好的要经过`parse`函数处理后才会得到AST抽象语法树，为什么这里就已经有了AST抽象语法树？不要着急接着向下看，后面我会解释。
@@ -185,7 +185,7 @@ const ast = isString(source) ? baseParse(source, options) : source
 原因是`baseCompile`函数可以被直接调用，也可以像我们这样由vite的`@vitejs/plugin-vue`包发起，经过层层调用后最终执行`baseCompile`函数。在我们这个场景中，在前面我们就知道了走进`compileTemplate`函数之前就已经有了编译后的AST抽象语法树，所以这里不会再调用`baseParse`函数去生成AST抽象语法树了。那么又是什么时候生成的AST抽象语法树呢？
 
 在之前的 [vue文件编译成js文件](/guide/vue-to-js) 文章中我们讲了调用`createDescriptor`函数会将`vue`代码字符串转换为`descriptor`对象，`descriptor`对象中拥有`template`属性、`scriptSetup`属性、`styles`属性，分别对应vue文件中的`template`模块、`<script setup>`模块、`<style>`模块。如下图：
-![progress-createDescriptor](/guide/vue-to-js/progress-createDescriptor.png){data-zoomable}
+![progress-createDescriptor](../images/guide/vue-to-js/progress-createDescriptor.webp){data-zoomable}
 `createDescriptor`函数在生成`template`属性的时候底层同样也会调用`@vue/compiler-core`包的`baseParse`函数，将template模块中的html字符串编译为AST抽象语法树。
 
 所以在我们这个场景中走到`baseCompile`函数时就已经有了AST抽象语法树了，其实底层都调用的是`@vue/compiler-core`包的`baseParse`函数。
@@ -283,7 +283,7 @@ const msgList = ref([
 
 ```
 接着在debug终端中看看执行`transform`函数前的AST抽象语法树是什么样的，如下图：
-![AST](/template/baseCompile/AST.png){data-zoomable}
+![AST](../images/template/baseCompile/AST.webp){data-zoomable}
 
 
 从上图中可以看到AST抽象语法树根节点下面只有一个children节点，这个children节点对应的就是input标签。在input标签上面有三个props，分别对应的是input标签上面的`v-for`指令、`:key`属性、`v-model`指令。说明在生成AST抽象语法树的阶段不会对指令进行处理，而是当做普通的属性一样使用正则匹配出来，然后塞到props数组中。
@@ -293,13 +293,13 @@ const msgList = ref([
 `nodeTransforms` 主要是对 node节点 进行操作，可能会替换或者移动节点。每个node节点都会将`nodeTransforms`数组中的转换函数按照顺序全部执行一遍，比如处理`v-if`指令的`transformIf`转换函数就要比处理`v-for`指令的`transformFor`函数先执行。所以`nodeTransforms`是一个数组，而且数组中的转换函数的顺序还是有讲究的。
 
 在我们这个demo中input标签上面的`v-for`指令是由`nodeTransforms`数组中的`transformFor`转换函数处理的，很简单就可以找到`transformFor`转换函数。在函数开始的地方打一个断点，代码就会走到这个断点中，在debug终端上面看看此时的`node`节点是什么样的，如下图：
-![before-transformFor](/template/baseCompile/before-transformFor.png){data-zoomable}
+![before-transformFor](../images/template/baseCompile/before-transformFor.webp){data-zoomable}
 
 
 从上图中可以看到在执行`transformFor`转换函数之前的node节点和上一张图打印的node节点是一样的。
 
 我们在执行完`transformFor`转换函数的地方打一个断点，看看执行完`transformFor`转换函数后node节点变成什么样了，如下图：
-![after-transformFor](/template/baseCompile/after-transformFor.png){data-zoomable}
+![after-transformFor](../images/template/baseCompile/after-transformFor.webp){data-zoomable}
 
 
 从上图我们可以看到经过`transformFor`转换函数处理后当前的node节点已经变成了一个新的node节点，而原来的input的node节点变成了这个节点的children子节点。
@@ -317,7 +317,7 @@ const msgList = ref([
 </template>
 ```
 template模版经过`parse`函数拿到AST抽象语法树，此时的AST抽象语法树的结构和template模版的结构是一模一样的，所以我们称之为`模版AST抽象语法树`。`模版AST抽象语法树`其实就是描述`template`模版的结构。如下图：
-![template-AST](/template/baseCompile/template-AST.png){data-zoomable}
+![template-AST](../images/template/baseCompile/template-AST.webp){data-zoomable}
 
 
 我们再来看看生成的`render`函数的代码：
@@ -340,7 +340,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
 }
 ```
 很明显`模版AST抽象语法树`无法通过简单的字符串拼接就可以拼成上面的`render`函数，所以我们需要一个结构和上面的render函数一模一样的`Javascript AST抽象语法树`，`Javascript AST抽象语法树`的作用就是描述`render`函数的结构。如下图：
-![javascript-AST](/template/baseCompile/javascript-AST.png){data-zoomable}
+![javascript-AST](../images/template/baseCompile/javascript-AST.webp){data-zoomable}
 
 上面这个`Javascript AST抽象语法树`就是执行`transform`函数时根据`模版AST抽象语法树`生成的。有了`Javascript AST抽象语法树`后再来执行`generate`函数时就可以只进行简单的字符串拼接，就能得到`render`函数了。
 ### `directiveTransforms`对象
@@ -351,12 +351,12 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
 答案是在`directiveTransforms`对象中的指令全部都是会给node节点生成props属性的，那些不生成props属性的就在`nodeTransforms`数组中。
 
 很容易就可以找到`@vue/compiler-dom`包的`transformModel`函数，然后打一个断点，让断点走进`transformModel`函数中，如下图：
-![transformModel](/template/baseCompile/transformModel.png){data-zoomable}
+![transformModel](../images/template/baseCompile/transformModel.webp){data-zoomable}
 
 从上面的图中我们可以看到在`@vue/compiler-dom`包的`transformModel`函数中会调用`@vue/compiler-core`包的`transformModel`函数，拿到返回的`baseResult`对象后再一些其他操作后直接`return baseResult`。
 
 从左边的call stack调用栈中我们可以看到`transformModel`函数是由一个`buildProps`函数调用的，看名字你应该猜到了`buildProps`函数的作用是生成props属性的。点击Step Out将断点跳出`transformModel`函数，走进`buildProps`函数中，可以看到`buildProps`函数中调用`transformModel`函数的代码如下图：
-![buildProps](/template/baseCompile/buildProps.png){data-zoomable}
+![buildProps](../images/template/baseCompile/buildProps.webp){data-zoomable}
 
 从上图中可以看到，`name`变量的值为`model`。`context.directiveTransforms[name]`的返回值就是`transformModel`函数，所以执行`directiveTransform(prop, node, context)`其实就是在执行`transformModel`函数。
 
@@ -371,7 +371,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
 经过上一步`transform`函数的处理后，已经将描述模版结构的`模版AST抽象语法树`转换为了描述`render`函数结构的`Javascript AST抽象语法树`。在前面我们已经讲过了`Javascript AST抽象语法树`就是描述了最终生成`render`函数的样子。所以在`generate`函数中只需要递归遍历`Javascript AST抽象语法树`，通过字符串拼接的方式就可以生成`render`函数了。
 
 将断点走到执行`generate`函数前，看看这会儿的`Javascript AST抽象语法树`是什么样的，如下图：
-![before-generate](/template/baseCompile/before-generate.png){data-zoomable}
+![before-generate](../images/template/baseCompile/before-generate.webp){data-zoomable}
 
 从上面的图中可以看到`Javascript AST`和`模版AST`的区别主要有两个：
 - node节点中多了一个`codegenNode`属性，这个属性中存了许多node节点信息，比如`codegenNode.props`中就存了`key`和`onUpdate:modelValue`属性的信息。在`generate`函数中遍历每个node节点时就会读取这个`codegenNode`属性生成`render`函数
@@ -379,11 +379,11 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
 - `模版AST`中根节点下面的children节点就是input标签，但是在这里`Javascript AST`中却是根节点下面的children节点，再下面的children节点才是input标签。多了一层节点，在前面的`transform`函数中我们已经讲了多的这层节点是由`v-for`指令生成的，用于给`v-for`循环出来的多个节点当父节点。
 
 将断点走到`generate`函数执行之后，可以看到已经生成`render`函数啦，如下图：
-![after-generate](/template/baseCompile/after-generate.png){data-zoomable}
+![after-generate](../images/template/baseCompile/after-generate.webp){data-zoomable}
 
 # 总结
 现在我们再来看看最开始讲的流程图，我想你应该已经能将整个流程串起来了。如下图：
-![full-progress](/template/baseCompile/full-progress.png){data-zoomable}
+![full-progress](../images/template/baseCompile/full-progress.webp){data-zoomable}
 
 将template编译为render函数可以分为7步：
 - 执行`@vue/compiler-sfc`包的`compileTemplate`函数，里面会调用同一个包的`doCompileTemplate`函数。这一步存在的目的是作为一个入口函数给外部调用。

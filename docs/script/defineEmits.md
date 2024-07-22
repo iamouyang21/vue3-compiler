@@ -41,7 +41,7 @@ function handleClick() {
 首先我们要搞清楚应该在哪里打断点，在我之前的文章 [vue文件编译成js文件](/guide/vue-to-js) 中已经带你搞清楚了将vue文件中的`<script>`模块编译成浏览器可直接运行的js代码，底层就是调用`vue/compiler-sfc`包的`compileScript`函数。
 
 所以我们将断点打在`vue/compiler-sfc`包的`compileScript`函数中，一样的套路，首先我们在vscode的打开一个debug终端。
-![debug-terminal](/common/debug-terminal.png){data-zoomable}
+![debug-terminal](../images/common/debug-terminal.webp){data-zoomable}
 
 然后在node_modules中找到`vue/compiler-sfc`包的`compileScript`函数打上断点，`compileScript`函数位置在`/node_modules/@vue/compiler-sfc/dist/compiler-sfc.cjs.js`。
 
@@ -161,7 +161,7 @@ class ScriptCompileContext {
 在之前的[vue文件编译成js文件](/guide/vue-to-js) 文章中我们已经讲过了传入给`compileScript`函数的`sfc`变量是一个`descriptor`对象，`descriptor`对象是由vue文件编译来的。`descriptor`对象拥有template属性、scriptSetup属性、style属性、source属性，分别对应vue文件的`<template>`模块、`<script setup>`模块、`<style>`模块、源代码code字符串。
 
 在我们这个场景只关注`scriptSetup`和`source`属性就行了，其中`sfc.scriptSetup.content`的值就是`<script setup>`模块中code代码字符串。详情查看下图：
-![composition-child](/script/defineEmits/composition-child.png){data-zoomable}
+![composition-child](../images/script/defineEmits/composition-child.webp){data-zoomable}
 
 
 现在我想你已经搞清楚了`ctx`上下文对象4个属性中的`startOffset`属性和`endOffset`属性了，`startOffset`和`endOffset`分别对应的就是`descriptor.scriptSetup?.loc.start.offset`和`descriptor.scriptSetup?.loc.end.offset`。`startOffset`为`<script setup>`模块中的内容开始的位置。`endOffset`为`<script setup>`模块中的内容结束的位置。
@@ -211,7 +211,7 @@ function parse(input: string, offset: number): Program {
 我们在前面已经讲过了`descriptor.scriptSetup.content`的值就是`vue`文件中的`<script setup>`模块的代码`code`字符串，`parse`函数中调用了`babel`提供的`parser`函数，将`vue`文件中的`<script setup>`模块的代码`code`字符串转换成`AST抽象语法树`。
 
 在`ScriptCompileContext`构造函数中主要做了下面这些事情：
-![progress1](/script/defineEmits/progress1.png){data-zoomable}
+![progress1](../images/script/defineEmits/progress1.webp){data-zoomable}
 
 ### processDefineEmits函数
 我们接着将断点走到`compileScript`函数中的第二部分，`for`循环遍历AST抽象语法树的地方，代码如下：
@@ -266,7 +266,7 @@ defineProps({
 const emits = defineEmits(["enlarge-text"]);
 ```
 将断点走进for循环里面，我们知道在script模块中第一行代码是变量声明语句`const emits = defineEmits(["enlarge-text"]);`。在console中看看由这条变量声明语句编译成的node节点长什么样子，如下图：
-![first-node](/script/defineEmits/first-node.png){data-zoomable}
+![first-node](../images/script/defineEmits/first-node.webp){data-zoomable}
 
 
 从上图中我们可以看到当前的`node`节点类型为变量声明语句，并且`node.declare`的值为`undefined`。我们再来看看`node.declarations`字段，他表示该节点的所有声明子节点。这句话是什么意思呢？说人话就是表示const右边的语句。
@@ -321,7 +321,7 @@ export function isCallOf(node, test) {
 }
 ```
 我们在debug console中将`node.type`、`node.callee.type`、`node.callee.name`的值打印出来看看。
-![isCallOf](/script/defineEmits/isCallOf.png){data-zoomable}
+![isCallOf](../images/script/defineEmits/isCallOf.webp){data-zoomable}
 
 
 从图上看到`node.type`、`node.callee.type`、`node.callee.name`的值后，我们知道了当前节点确实是在调用 `defineEmits` 函数。所以`isCallOf(node, DEFINE_EMITS)` 的执行结果为 true，在 `processDefineEmits` 函数中我们是对 `isCallOf` 函数的执行结果取反，所以 `!isCallOf(node, DEFINE_EMITS) `的执行结果为 false。
@@ -372,7 +372,7 @@ if (node.type === "VariableDeclaration" && !node.declare) {
 将`processDefineEmits`函数的执行结果赋值赋值给`isDefineEmits`变量，在我们这个场景当然是在调用`defineEmits`函数，所以会执行if语句内的`ctx.s.overwrite`方法。
 
 `ctx.s.overwrite`方法我们前面已经讲过了，作用是使用指定的内容替换开始位置到结束位置的内容。在执行`ctx.s.overwrite`前我们先在debug console中执行`ctx.s.toString()`看看当前的code代码字符串是什么样的。
-![before-overwrite](/script/defineEmits/before-overwrite.png){data-zoomable}
+![before-overwrite](../images/script/defineEmits/before-overwrite.webp){data-zoomable}
 
 从上图我们可以看到此时的code代码字符串还是和我们的源代码是一样的，我们接着来看`ctx.s.overwrite`方法接收的参数。第一个参数为`startOffset + init.start`，`startOffset`我们前面已经讲过了他的值为`script`模块的内容开始的位置。
 
@@ -383,14 +383,14 @@ if (node.type === "VariableDeclaration" && !node.declare) {
 所以`ctx.s.overwrite`方法的作用是将`const emits = defineEmits(["enlarge-text"]);`替换为`const emits = __emit;`。
 
 关于`startOffset`、`init.start`、 `init.end`请看下图：
-![params-overwrite](/script/defineEmits/params-overwrite.png){data-zoomable}
+![params-overwrite](../images/script/defineEmits/params-overwrite.webp){data-zoomable}
 
 
 在执行`ctx.s.overwrite`方法后我们在debug console中再次执行`ctx.s.toString()`看看这会儿的code代码字符串是什么样的。
-![after-overwrite](/script/defineEmits/after-overwrite.png){data-zoomable}
+![after-overwrite](../images/script/defineEmits/after-overwrite.webp){data-zoomable}
 
 从上图中我们可以看到此时代码中已经没有了`defineEmits`函数，已经变成了一个`__emit`变量。
-![convert-defineEmits](/script/defineEmits/convert-defineEmits.png){data-zoomable}
+![convert-defineEmits](../images/script/defineEmits/convert-defineEmits.webp){data-zoomable}
 
 ### genRuntimeEmits函数
 我们接着将断点走到`compileScript`函数中的第三部分，生成运行时的“声明事件”。我们在上一步将`defineEmits`声明事件的代码替换为`__emit`，那么总得有一个地方去生成“声明事件”。
@@ -407,11 +407,11 @@ if (emitsDecl) runtimeOptions += `\n  emits: ${emitsDecl},`;
 从上面的代码中我们看到首先执行了两次`remove`方法，在前面已经讲过了`startOffset`为`script`模块中的内容开始的位置。
 
 所以`ctx.s.remove(0, startOffset);`的意思是删除掉`template`模块的内容和`<script setup>`开始标签。这行代码执行完后我们再看看`ctx.s.toString()`的值：
-![remove1](/script/defineEmits/remove1.png){data-zoomable}
+![remove1](../images/script/defineEmits/remove1.webp){data-zoomable}
 
 
 从上图我们可以看到此时`template`模块和`<script setup>`开始标签已经没有了，接着执行`ctx.s.remove(endOffset, source.length);`，这行代码的意思是删除`</script >`结束标签和`<style>`模块。这行代码执行完后我们再来看看`ctx.s.toString()`的值：
-![remove2](/script/defineEmits/remove2.png){data-zoomable}
+![remove2](../images/script/defineEmits/remove2.webp){data-zoomable}
 
 从上图我们可以看到，此时只有script模块中的内容了。
 
@@ -433,11 +433,11 @@ getString(node, scriptSetup = true) {
 }
 ```
 我们前面已经讲过了`descriptor`对象是由`vue`文件编译而来，其中的`scriptSetup`属性就是对应的`<script setup>`模块。我们这里没有传入`scriptSetup`，所以`block`的值为`this.descriptor.scriptSetup`。同样我们前面也讲过`scriptSetup.content`的值是`<script setup>`模块`code`代码字符串。请看下图：
-![script-code](/script/defineEmits/script-code.png){data-zoomable}
+![script-code](../images/script/defineEmits/script-code.webp){data-zoomable}
 
 
 这里传入的`node`节点就是我们前面存在上下文中`ctx.emitsRuntimeDecl`，也就是在调用`defineEmits`函数时传入的参数节点，`node.start`就是参数节点开始的位置，`node.end`就是参数节点的结束位置。所以使用`content.slice`方法就可以截取出来调用`defineEmits`函数时传入的参数。请看下图：
-![block-slice](/script/defineEmits/block-slice.png){data-zoomable}
+![block-slice](../images/script/defineEmits/block-slice.webp){data-zoomable}
 
 
 现在我们再回过头来看`compileScript`函数中的调用`genRuntimeEmits`函数的代码你就能很容易理解了：
@@ -447,11 +447,11 @@ const emitsDecl = genRuntimeEmits(ctx);
 if (emitsDecl) runtimeOptions += `\n  emits: ${emitsDecl},`;
 ```
 这里的`emitsDecl`在我们这个场景中就是使用`slice`截取出来的`emits`定义，再使用字符串拼接 `emits:`，就得到了`runtimeOptions`的值。如图：
-![runtimeOptions](/script/defineEmits/runtimeOptions.png){data-zoomable}
+![runtimeOptions](../images/script/defineEmits/runtimeOptions.webp){data-zoomable}
 
 
 看到`runtimeOptions`的值是不是就觉得很熟悉了，又有`name`属性，又有`emits`属性，和我们前面举的两个例子中的vue2的选项式语法的例子比较相似。
-![genRuntimeEmits](/script/defineEmits/genRuntimeEmits.png){data-zoomable}
+![genRuntimeEmits](../images/script/defineEmits/genRuntimeEmits.webp){data-zoomable}
 
 ### 拼接成完整的浏览器运行时 `js` 代码
 我们接着将断点走到`compileScript`函数中的最后一部分：
@@ -475,17 +475,17 @@ return {
 };
 ```
 这块代码和我们讲`defineProps`文章中是一样的，先调用了`ctx.s.prependLeft`方法给字符串开始的地方插入了一串字符串，这串拼接的字符串看着很麻烦的样子，我们直接在debug console上面看看要拼接的字符串是什么样的：
-![prependLeft](/script/defineEmits/prependLeft.png){data-zoomable}
+![prependLeft](../images/script/defineEmits/prependLeft.webp){data-zoomable}
 
 看到这串你应该很熟悉，除了前面我们拼接的`name`和`emits`之外还有部分`setup`编译后的代码，但是这里的`setup`代码还不完整，剩余部分还在`ctx.s.toString()`里面。
 
 将断点执行完`ctx.s.prependLeft`后，我们在debug console上面通过`ctx.s.toString()`看此时操作的字符串变成什么样了：
-![after-prependLeft](/script/defineEmits/after-prependLeft.png){data-zoomable}
+![after-prependLeft](../images/script/defineEmits/after-prependLeft.webp){data-zoomable}
 
 从上图可以看到此时的setup函数已经拼接完整了，已经是一个编译后的`vue`组件对象的代码字符串了，只差一个`})`结束符号，所以执行`ctx.s.appendRight`方法将结束符号插入进去。
 
 我们最后再来看看经过`compileScript`函数处理后的浏览器可执行的`js`代码字符串，也就是`ctx.s.toString()`
-![full-code](/script/defineEmits/full-code.png){data-zoomable}
+![full-code](../images/script/defineEmits/full-code.webp){data-zoomable}
 
 
 **从上图中我们可以看到编译后的代码中`声明事件`还是通过vue组件对象上面的`emits`选项声明的，和我们前面举的vue2的选项式语法的例子一模一样。**
@@ -495,7 +495,7 @@ return {
 首先我们需要在浏览器的source面板中找到由vue文件编译而来的js文件，然后给setup函数打上断点。在我们前面的 [setup函数](/script/what-setup)文章中已经手把手的教你了怎么在浏览器中找到编译后的js文件，所以在这篇文章中就不再赘述了。
 
 给`setup`函数打上断点，刷新浏览器页面后，我们看到断点已经走进来了。如图：
-![setup-debug](/script/defineEmits/setup-debug.png){data-zoomable}
+![setup-debug](../images/script/defineEmits/setup-debug.webp){data-zoomable}
 
 
 从上图中我们可以看见`defineEmits`的返回值也就是`__emit`变量，实际就是`setup`函数的第二个参数对象中的`emit`属性。右边的Call Stack有的小伙伴可能不常用，他的作用是追踪函数的执行流。
@@ -552,7 +552,7 @@ function createSetupContext(instance) {
 从前面我们已经知道了`createSetupContext`函数的返回值就是调用`setup`函数时传入的第二个参数对象，我们要找的`__emit`就是第二个参数对象中的`emit`属性。当读取`emit`属性时就会走到上面的冻结对象的`get emit() `中，当我们调用`emit`函数抛出事件时实际就是调用的是`instance.emit`方法，也就是`vue`实例上面的`emit`方法。
 
 现在我想你应该已经反应过来了，调用`defineEmits`函数的返回值实际就是在调用vue实例上面的emit方法，其实在运行时抛出事件的做法还是和vue2的选项式语法一样的，只是在编译时就将看着高大上的`defineEmits`函数编译成vue2的选项式语法的样子。
-![full-emit-progress](/script/defineEmits/full-emit-progress.png){data-zoomable}
+![full-emit-progress](../images/script/defineEmits/full-emit-progress.webp){data-zoomable}
 
 # 总结
 现在我们能够回答前面提的两个问题了：

@@ -76,10 +76,10 @@
 # 编译时 debug 源码小技巧
 
 想要在编译时 debug 源码，首先我们需要启动一个 debug 终端。这里以`vscode`举例，打开终端然后点击终端中的`+`号旁边的下拉箭头，在下拉中点击`Javascript Debug Terminal`就可以启动一个`debug`终端。
-![debug-terminal](/common/debug-terminal.png){data-zoomable}
+![debug-terminal](../images/common/debug-terminal.webp){data-zoomable}
 
 在 debug 终端执行对应的启动命令，比如`yarn dev`，断点将会停留在我们打断点的代码处。此时会有这样一排操作按钮，如下图：
-![step](/guide/start-view-source-code/step.png){data-zoomable}
+![step](../images/guide/start-view-source-code/step.webp){data-zoomable}
 
 上面的一排操作按钮欧阳平时 debug 源码时一般就使用了前四个，分别是：Continue（继续）、Step Over（单步跳过）、Step Into（单步调试）、Step Out（单步跳出）。
 
@@ -94,7 +94,7 @@
 不一定每个问题你都能找到对应的线头子，这时你就不知道从哪里开始打断点了。比如还是`defineProps`宏函数，假如你不知道应该从`@vitejs/plugin-vue`插件开始打断点，那这种情况我们应该怎么办呢？
 
 答案很简单，在源码中去搜索`defineProps`关键字，将搜索到的结果都打上断点。然后启动项目，发现代码走进了我们打的断点中，如下图：
-![call-stack](/guide/start-view-source-code/call-stack.png){data-zoomable}
+![call-stack](../images/guide/start-view-source-code/call-stack.webp){data-zoomable}
 
 此时左侧的 Call Stack 调用栈就能派上用场了，他里面存了当前函数的所有调用栈。比如当前断点是停留在`processDefineProps`函数中，从 Call Stack 调用栈我们就能知道这个函数就是由`compileScript`调用的，而`compileScript`函数又是由`resolveScript`函数调用的。并且可以通过点击函数名就可以跳转到对应的函数中，并且恢复当时的上下文。
 
@@ -103,7 +103,7 @@
 # 运行时 debug 源码小技巧
 
 大家都知道 vue 文件经过编译后会变成 js 文件，那么如何找到编译后的 js 文件给他打上断点呢？
-![network](/guide/start-view-source-code/network.png){data-zoomable}
+![network](../images/guide/start-view-source-code/network.webp){data-zoomable}
 
 很简单在 network 面板中找到对应的请求，这里我想找的是`index.vue`文件。然后右键，在弹出的菜单中选择第一个 Open In Sources Panel。浏览器将会切换到 source 面板中，并且自动打开编译后的`index.vue`文件，然后我们就可以在这个文件中给对应的代码打断点。
 

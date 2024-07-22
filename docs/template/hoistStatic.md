@@ -26,7 +26,7 @@ function handleChange() {
 我们先来看看未开启**静态提升**之前生成的render函数是什么样的：
 
 由于在vite项目中启动的vue都是开启了静态提升，所以我们需要在 [Vue 3 Template Explorer](https://template-explorer.vuejs.org/)网站中看看未开启静态提升的render函数的样子（网站URL为： [https://template-explorer.vuejs.org/](https://template-explorer.vuejs.org/) ），如下图将`hoistStatic`这个选项取消勾选即可：
-![template-explorer](/template/hoistStatic/template-explorer.png){data-zoomable}
+![template-explorer](../images/template/hoistStatic/template-explorer.webp){data-zoomable}
 
 
 未开启静态提升生成的render函数如下：
@@ -119,7 +119,7 @@ function walk(node, context, doNotHoistNode = false) {
 }
 ```
 我们先在debug终端上面看看传入的第一个参数`node`是什么样的，如下图：
-![root-code](/template/hoistStatic/root-code.png){data-zoomable}
+![root-code](../images/template/hoistStatic/root-code.webp){data-zoomable}
 
 从上面可以看到此时的`node`为AST抽象语法树的根节点，树的结构和`template`中的代码刚好对上。外层是div标签，div标签下面有h1、p、button三个标签。
 
@@ -260,7 +260,7 @@ if (
 )
 ```
 在debug终端中来看看h1标签的`constantType`的值，如下：
-![constantType](/template/hoistStatic/constantType.png){data-zoomable}
+![constantType](../images/template/hoistStatic/constantType.webp){data-zoomable}
 
 从上图中可以看到h1标签的`constantType`值为3，也就是`ConstantTypes.CAN_STRINGIFY`。表明h1标签是最高等级的**预字符串**，当然也能**静态提升**。
 
@@ -297,7 +297,7 @@ function hoist(exp) {
 }
 ```
 我们先在debug终端看看传入的`codegenNode`属性。如下图：
-![before-codegenNode](/template/hoistStatic/before-codegenNode.png){data-zoomable}
+![before-codegenNode](../images/template/hoistStatic/before-codegenNode.webp){data-zoomable}
 
 从上图中可以看到此时的`codegenNode`属性对应的就是h1标签，`codegenNode.children`对应的就是h1标签的title文本节点。`codegenNode`属性的作用就是用于生成h1标签的render函数。
 
@@ -333,7 +333,7 @@ function createSimpleExpression(
 同理上面的`_hoisted_1`表示的是使用了一个变量名为`_hoisted_1`的表达式。
 
 我们在debug终端上面看看`hoist`函数返回值，也就是h1标签新的`codegenNode`属性。如下图：
-![after-codegenNode](/template/hoistStatic/after-codegenNode.png){data-zoomable}
+![after-codegenNode](../images/template/hoistStatic/after-codegenNode.webp){data-zoomable}
 
 此时的`codegenNode`属性已经变成了一个简单表达式节点，表达式的内容为：`_hoisted_1`。后续执行`generate`生成render函数时，在render函数中h1标签就变成了表达式：`_hoisted_1`。
 
@@ -353,7 +353,7 @@ function createSimpleExpression(
 - 在render函数内直接使用`_hoisted_1`变量即可。
 
 如下图：
-![generate](/template/hoistStatic/generate.png){data-zoomable}
+![generate](../images/template/hoistStatic/generate.webp){data-zoomable}
 
 ### 生成render函数外面的`_hoisted_1`变量
 经过`transform`阶段的处理，根节点的`hoists`属性数组中存了所有需要静态提升的静态节点。我们先来看如何处理这些静态节点，生成h1标签对应的`_hoisted_1`变量的。代码如下：
@@ -386,14 +386,14 @@ function genHoists(hoists, context) {
 - `genNode`函数：在`transform`阶段给会每个node节点生成`codegenNode`属性，在`genNode`函数中会使用`codegenNode`属性生成对应node节点的render函数代码。
 
 在刚刚进入`genHoists`函数，我们在debug终端使用`context.code`看看此时的render函数字符串是什么样的，如下图：
-![before-genHoists](/template/hoistStatic/before-genHoists.png){data-zoomable}
+![before-genHoists](../images/template/hoistStatic/before-genHoists.webp){data-zoomable}
 
 从上图中可以看到此时的render函数code字符串只有一行import vue的代码。
 
 然后执行`newline`方法向render函数code字符串中插入一个换行符。
 
 接着遍历在`transform`阶段收集的需要静态提升的节点集合，也就是`hoists`数组。在debug终端来看看这个`hoists`数组，如下图：
-![hoists](/template/hoistStatic/hoists.png){data-zoomable}
+![hoists](../images/template/hoistStatic/hoists.webp){data-zoomable}
 
 从上图中可以看到在`hoists`数组中只有一个h1标签需要静态提升。
 
@@ -402,12 +402,12 @@ function genHoists(hoists, context) {
 push(`const _hoisted_${i + 1} = ${``}`)
 ```
 这行代码的意思是插入一个名为`_hoisted_1`的const变量，此时该变量的值还是空字符串。在debug终端使用`context.code`看看执行`push`方法后的render函数字符串是什么样的，如下图：
-![const](/template/hoistStatic/const.png){data-zoomable}
+![const](../images/template/hoistStatic/const.webp){data-zoomable}
 
 从上图中可以看到`_hoisted_1`全局变量的定义已经生成了，值还没生成。
 
 接着就是执行`genNode(exp, context)`函数生成`_hoisted_1`全局变量的值，同理在debug终端看看执行`genNode`函数后的render函数字符串是什么样的，如下图：
-![const-value](/template/hoistStatic/const-value.png){data-zoomable}
+![const-value](../images/template/hoistStatic/const-value.webp){data-zoomable}
 
 从上面可以看到render函数外面已经定义了一个`_hoisted_1`变量，变量的值为调用`createElementVNode`生成h1标签虚拟DOM。
 ### 生成render函数中return的内容
@@ -418,22 +418,22 @@ genNode(ast.codegenNode, context);
 这里传入的参数`ast.codegenNode`是根节点的`codegenNode`属性，在`genNode`函数中会从根节点开始递归遍历整颗AST抽象语法树，为每个节点生成自己的`createElementVNode`函数，执行`createElementVNode`函数会生成这些节点的虚拟DOM。
 
 我们先来看看传入的第一个参数`ast.codegenNode`，也就是根节点的`codegenNode`属性。如下图：
-![ast-codegenNode](/template/hoistStatic/ast-codegenNode.png){data-zoomable}
+![ast-codegenNode](../images/template/hoistStatic/ast-codegenNode.webp){data-zoomable}
 
 从上图中可以看到静态节点h1标签已经变成了一个名为`_hoisted_1`的变量，而使用了`msg`变量的动态节点依然还是p标签。
 
 我们再来看看执行这个`genNode`函数之前render函数字符串是什么样的，如下图：
-![before-return](/template/hoistStatic/before-return.png){data-zoomable}
+![before-return](../images/template/hoistStatic/before-return.webp){data-zoomable}
 
 从上图中可以看到此时的render函数字符串还没生成return中的内容。
 
 执行`genNode`函数后，来看看此时的render函数字符串是什么样的，如下图：
-![after-return](/template/hoistStatic/after-return.png){data-zoomable}
+![after-return](../images/template/hoistStatic/after-return.webp){data-zoomable}
 
 从上图中可以看到，在生成的render函数中h1标签静态节点已经变成了`_hoisted_1`变量，`_hoisted_1`变量中存的是静态节点h1的虚拟DOM，所以每次页面更新重新执行render函数时就不会每次都去生成一遍静态节点h1的虚拟DOM。
 # 总结
 整个静态提升的流程图如下：
-![full-progress](/template/hoistStatic/full-progress.png){data-zoomable}
+![full-progress](../images/template/hoistStatic/full-progress.webp){data-zoomable}
 
 整个流程主要分为两个阶段：
 

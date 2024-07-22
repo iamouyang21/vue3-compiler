@@ -8,7 +8,7 @@
 
 我们的`vue`代码一般都是写在后缀名为vue的文件上，显然浏览器是不认识vue文件的，浏览器只认识html、css、jss等文件。所以第一步就是通过`webpack`或者`vite`将一个vue文件编译为一个包含`render`函数的`js`文件。然后执行`render`函数生成虚拟DOM，再调用浏览器的`DOM API`根据虚拟DOM生成真实DOM挂载到浏览器上。
 
-![progress](/script/what-macros/progress.png){data-zoomable}
+![progress](../images/script/what-macros/progress.webp){data-zoomable}
 
 
 # vue3的宏是什么？
@@ -106,7 +106,7 @@
 
 我们这里的组件选项对象经过编译后只有两个了，分别是`props`属性和`setup`方法。明显可以发现我们原本在`setup`里面使用的`defineProps`宏相关的代码不在了，并且多了一个`props`属性。没错这个`props`属性就是我们的`defineProps`宏生成的。
 
-![convert](/script/what-macros/convert.png){data-zoomable}
+![convert](../images/script/what-macros/convert.webp){data-zoomable}
 
 
 我们再来看一个不在`setup`顶层调用`defineProps`的例子：

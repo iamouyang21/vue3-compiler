@@ -11,4 +11,8 @@
 
 如果你想加入本书对应的「源码交流群」，和群里面的小伙伴一起交流`vue源码`，可以加我微信（heavenyjj0012），备注「揭秘」：
 
-![wx](https://raw.githubusercontent.com/iamouyang21/vue3-complier/main/docs/public/guide/wx.png)
+![wx](https://raw.githubusercontent.com/iamouyang21/vue3-compiler/main/docs/images/guide/wx.png)
+
+也可以关注我的公众号【前端欧阳】，最新原创文章是在公众号内发布
+
+![qrcode](https://raw.githubusercontent.com/iamouyang21/vue3-compiler/main/docs/images/guide/qrcode.png)

@@ -31,7 +31,7 @@ const msgList = ref([
 const title = ref("hello word");
 </script>
 ```
-在上面的代码中，我们给input标签使用了v-for和v-model指令，还渲染了一个p标签。p标签中的内容由`foo`变量、`bar`字符串、`baz`变量拼接而来的。
+在上面的代码中，我们给input标签使用了v-for和v-model指令，还渲染了一个p标签。p标签中的内容由`title`变量渲染而来的。
 
 我们在前面的 [baseCompile函数](/template/baseCompile) 文章中已经讲过了，将template模版编译成**模版AST抽象语法树**的过程中不会处理v-for、v-model等内置指令，而是将其当做普通的props属性处理。
 

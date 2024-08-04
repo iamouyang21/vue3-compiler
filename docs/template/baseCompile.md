@@ -398,7 +398,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
 
 - 第二部分为执行`getBaseTransformPreset`函数拿到`@vue/compiler-core`包中内置的`nodeTransforms`和`directiveTransforms`转换函数。
 
-  `nodeTransforms`数组中的为一堆处理node节点的转换函数，比如处理`v-on`指令的`transformOnce`转换函数、处理`v-if`指令的`transformIf`转换函数。
+  `nodeTransforms`数组中的为一堆处理node节点的转换函数，比如处理`v-once`指令的`transformOnce`转换函数、处理`v-if`指令的`transformIf`转换函数。
 
   `directiveTransforms`对象中存的是对一些“会生成props的指令”进行转换的函数，用于给`node`节点生成对应的`props`。比如处理`v-model`指令的`transformModel`转换函数。
 

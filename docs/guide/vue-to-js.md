@@ -628,7 +628,7 @@ async function transformMain(code, filename, options, pluginContext, ssr, custom
 ![progress-full](../images/guide/vue-to-js/progress-full.webp){data-zoomable}
 
 
-`@vitejs/plugin-vue-jsx`库中有个叫`transform`的钩子函数，每当vite加载模块的时候就会触发这个钩子函数。所以当import一个vue文件的时候，就会走到`@vitejs/plugin-vue-jsx`中的`transform`钩子函数中，在`transform`钩子函数中主要调用了`transformMain`函数。
+`@vitejs/plugin-vue`库中有个叫`transform`的钩子函数，每当vite加载模块的时候就会触发这个钩子函数。所以当import一个vue文件的时候，就会走到`@vitejs/plugin-vue`中的`transform`钩子函数中，在`transform`钩子函数中主要调用了`transformMain`函数。
 
 第一次解析这个vue文件时，在`transform`钩子函数中主要调用了`transformMain`函数。在`transformMain`函数中主要调用了4个函数，分别是：`createDescriptor`、`genScriptCode`、`genTemplateCode`、`genStyleCode`。
 
@@ -645,7 +645,7 @@ async function transformMain(code, filename, options, pluginContext, ssr, custom
 
 然后使用换行符`\n`将`genScriptCode`函数、`genTemplateCode`函数、`genStyleCode`函数的返回值拼接起来赋值给变量`resolvedCode`，这个`resolvedCode`就是vue文件编译成js文件的`code`字符串。
 
-当浏览器执行到`import "/src/App.vue?vue&type=style&index=0&scoped=7a7a37b1&lang.css";`语句时，触发了加载模块操作，再次触发了`@vitejs/plugin-vue-jsx`中的`transform`钩子函数。此时由于有了`type=style`的`query`，所以在`transform`函数中会执行`transformStyle`函数，在`transformStyle`函数中同样也是调用`vue/compiler-sfc`的`compileStyleAsync`函数，根据第一步的`descriptor`对象将vue文件的`<style>`模块转换为编译后的css代码`code`字符串，至此编译style部分也讲完了。
+当浏览器执行到`import "/src/App.vue?vue&type=style&index=0&scoped=7a7a37b1&lang.css";`语句时，触发了加载模块操作，再次触发了`@vitejs/plugin-vue`中的`transform`钩子函数。此时由于有了`type=style`的`query`，所以在`transform`函数中会执行`transformStyle`函数，在`transformStyle`函数中同样也是调用`vue/compiler-sfc`的`compileStyleAsync`函数，根据第一步的`descriptor`对象将vue文件的`<style>`模块转换为编译后的css代码`code`字符串，至此编译style部分也讲完了。
 
 
 

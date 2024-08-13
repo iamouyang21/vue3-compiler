@@ -2,8 +2,8 @@ import { defineConfig } from "vitepress";
 
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
-  title: "vue3编译原理揭秘",
-  description: "通过debug的方式带你搞清楚vue3中的编译黑魔法",
+  title: "Vue3 编译原理揭秘",
+  description: "通过 debug 的方式带你搞清楚 Vue3 中的编译黑魔法",
   ignoreDeadLinks: true,
   head: [["link", { rel: "icon", href: "/logo.svg" }]],
   themeConfig: {
@@ -32,26 +32,26 @@ export default defineConfig({
             link: "/guide/compiler-and-runtime",
           },
           {
-            text: "vue文件编译成js文件",
+            text: "Vue 文件编译成 JS 文件",
             link: "/guide/vue-to-js",
           },
         ],
       },
       {
-        text: "template部分",
+        text: "Template 部分",
         items: [
           {
             // 如何将template编译成render函数的？
-            text: "baseCompile函数",
+            text: "baseCompile 函数",
             link: "/template/baseCompile",
           },
           {
-            text: "parse函数",
+            text: "parse 函数",
             link: "/template/parse",
           },
           {
             // transform函数用于处理内置的v-for、v-model等指令
-            text: "transform函数",
+            text: "transform 函数",
             link: "/template/transform",
           },
           {
@@ -64,35 +64,35 @@ export default defineConfig({
           },
           {
             // generate阶段是如何生成render函数的？
-            text: "generate函数",
+            text: "generate 函数",
             link: "/template/generate",
           },
           {
-            text: "v-bind指令",
+            text: "v-bind 指令",
             link: "/template/v-bind-template",
           },
           {
-            text: "普通组件上面的v-model",
+            text: "普通组件上面的 v-model",
             link: "/template/v-model-component",
           },
           {
-            text: "原生input上面的v-model",
+            text: "原生 input上 面的 v-model",
             link: "/template/v-model-input",
           },
           {
-            text: "template使用ref无需.value",
+            text: "template 使用 ref 无需 .value",
             link: "/template/template-ref",
           },
         ],
       },
       {
-        text: "script部分",
+        text: "Script 部分",
         items: [
           // 宏到底是什么东西？
           { text: "宏函数", link: "/script/what-macros" },
           {
             // setup语法糖到底是什么东西？
-            text: "setup函数",
+            text: "setup 函数",
             link: "/script/what-setup",
           },
           {
@@ -117,29 +117,29 @@ export default defineConfig({
           },
           {
             // 为什么template可以直接使用setup语法糖中的变量？
-            text: "setup函数导出变量",
+            text: "setup 函数导出变量",
             link: "/script/setup-vars",
           },
           {
             // 为什么setup语法糖中的组件无需注册？
-            text: "setup函数导出组件",
+            text: "setup 函数导出组件",
             link: "/script/setup-component",
           },
         ],
       },
       {
-        text: "style部分",
+        text: "Style 部分",
         items: [
           {
-            text: "css上面的data-v-xxx",
+            text: "CSS 上面的 data-v-xxx",
             link: "/style/scoped-style",
           },
           {
-            text: "html上面的data-v-xxx",
+            text: "HTML 上面的 data-v-xxx",
             link: "/style/scoped-template",
           },
           {
-            text: "style中的v-bind",
+            text: "Style 中的 v-bind",
             link: "/style/v-bind-style",
           },
         ],

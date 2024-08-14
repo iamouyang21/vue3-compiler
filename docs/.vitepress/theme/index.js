@@ -18,7 +18,11 @@ export default {
     });
     watch(
       () => route.path,
-      () => nextTick(() => initZoom())
+      () => {
+        nextTick(() => initZoom());
+        const pageURL = window.location.href;
+        _hmt.push(["_trackPageview", pageURL]);
+      }
     );
   },
 };

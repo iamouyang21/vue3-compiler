@@ -5,7 +5,26 @@ export default defineConfig({
   title: "vue3编译原理揭秘",
   description: "通过debug的方式带你搞清楚vue3中的编译黑魔法",
   ignoreDeadLinks: true,
-  head: [["link", { rel: "icon", href: "/logo.svg" }]],
+  // head: [["link", { rel: "icon", href: "/logo.svg" } ]],
+  // head设置
+  head: [
+    ["link", { rel: "icon", href: "/logo.svg" }],
+    // 添加百度统计代码
+    [
+      "script",
+      {},
+      `
+      var _hmt = _hmt || [];
+      (function() {
+        var hm = document.createElement("script");
+        hm.src = "https://hm.baidu.com/hm.js?075678ead356cdd6dec49c92b16ca5f1";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+      })();
+    `,
+    ],
+    ["meta", { name: "baidu-site-verification", content: "codeva-phM5FSU2JM" }],
+  ],
   themeConfig: {
     // https://vitepress.dev/reference/default-theme-config
     nav: [{ text: "本书交流群", link: "/guide/contact" }],
@@ -149,5 +168,12 @@ export default defineConfig({
     socialLinks: [
       { icon: "github", link: "https://github.com/iamouyang21/vue3-complier" },
     ],
+    lastUpdated: {
+      text: "最后更新于",
+    },
   },
+  sitemap: {
+    hostname: "https://vue-compiler.iamouyang.cn",
+  },
+  lastUpdated: true,
 });

@@ -31,6 +31,7 @@
 # 像接手新项目一样搞清楚源码
 
 我们这里以 Vue 举例，Vue 其实也是一个普通的 JavaScript 项目。本质上和我们的工作中接手的新项目没什么区别，对于查看 Vue 源码我们也可以复用上面这个套路。
+
 ## 第一步：查看 `contributing.md` 文件
 
 查看源码的 `contributing.md` 文件，这个文件就像是我们项目中的 `README.md` 。开源项目希望更多的人参与进来所以一般都会有个 `contributing.md` 文件。这个文件里面会教你源码项目是如何跑起来，项目结构是什么样的，怎么参与进来开发。
@@ -81,7 +82,7 @@
 
 在 debug 终端执行对应的启动命令，比如 `yarn dev`，断点将会停留在我们打断点的代码处。此时会有这样一排操作按钮，如下图：
 
-![step](../images/guide/start -view-source-code/step.webp){data-zoomable}
+![step](../images/guide/start-view-source-code/step.webp){data-zoomable}
 
 上面的一排操作按钮欧阳平时 debug 源码时一般就使用了前四个，分别是：Continue（继续）、Step Over（单步跳过）、Step Into（单步调试）、Step Out（单步跳出）。
 
@@ -124,6 +125,5 @@
 - 通过查看源码文章或者书籍让你对源码大体流程和重要概念有初步印象。
 
 - 带着你想要了解的问题去 debug 调试源码，和问题不相关的源码全部忽略掉。此时的源码就不再是一棵树，而是一条线，我们只需要将这条线的源码搞清楚就行了。当我们搞清楚足够多问题时，这些线将会汇聚成一棵树。
-
 
 [加入本书对应的「源码交流群」](/guide/contact)

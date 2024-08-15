@@ -77,7 +77,7 @@ export default _sfc_main;
 
 大家应该都知道，前端代码运行环境主要有两个，Node.js 端和浏览器端，分别对应我们熟悉的编译时和运行时。浏览器明显是不认识 Vue 文件的，所以 Vue 文件编译成 JavaScript 这一过程肯定不是在运行时的浏览器端。很明显这一过程是在编译时的 Node.js 端。
 
-要在 node 端打断点，我们需要启动一个 debug 终端。这里以 VSCode 举例，首先我们需要打开终端，然后点击终端中的 `+` 号旁边的下拉箭头，在下拉中点击`Javascript Debug Terminal` 就可以启动一个 debug 终端。
+要在 Node.js 端打断点，我们需要启动一个 debug 终端。这里以 VSCode 举例，首先我们需要打开终端，然后点击终端中的 `+` 号旁边的下拉箭头，在下拉中点击`Javascript Debug Terminal` 就可以启动一个 debug 终端。
 
 ![debug-terminal](../images/common/debug-terminal.webp){data-zoomable}
 

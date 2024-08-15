@@ -81,7 +81,7 @@
 
 在 debug 终端执行对应的启动命令，比如 `yarn dev`，断点将会停留在我们打断点的代码处。此时会有这样一排操作按钮，如下图：
 
-![step](../images/guide/start -view-source-code/step.webp){data-zoomable}
+![step](../images/guide/start-view-source-code/step.webp){data-zoomable}
 
 上面的一排操作按钮欧阳平时 debug 源码时一般就使用了前四个，分别是：Continue（继续）、Step Over（单步跳过）、Step Into（单步调试）、Step Out（单步跳出）。
 

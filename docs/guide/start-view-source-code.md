@@ -111,6 +111,9 @@
 
 很简单在 Network 面板中找到对应的请求，这里我想找的是 `index.vue` 文件。然后右键，在弹出的菜单中选择第一个 Open In Sources Panel。浏览器将会切换到 Source 面板中，并且自动打开编译后的 `index.vue` 文件，然后我们就可以在这个文件中给对应的代码打断点。
 
+还有就是我们需要在设置里面的Ignore List看看node_modules文件夹是否被忽略。新版谷歌浏览器中会默认排除掉node_modules文件夹，所以我们需要将这个取消勾选。如果忽略了node_modules文件夹，那么debug的时候断点就不会走到node_modules中vue的源码中去了。
+![ignoreList](../images/script/what-setup/ignoreList.webp){data-zoomable}
+
 关于 Continue、Step Over 这几个按钮，还有 Call Stack 调用栈都是和编译时是一样的，在这里我们就不赘述了，欢迎补充其他小技巧。
 
 # 总结

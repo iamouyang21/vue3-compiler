@@ -248,8 +248,8 @@ el[assignKey] = getModelAssigner(vnode);
 我们先来看这个`getModelAssigner`函数。代码如下：
 ```js
 const getModelAssigner = (vnode) => {
-const fn = vnode.props["onUpdate:modelValue"];
-return isArray(fn) ? (value) => invokeArrayFns(fn, value) : fn;
+  const fn = vnode.props["onUpdate:modelValue"];
+  return isArray(fn) ? (value) => invokeArrayFns(fn, value) : fn;
 };
 ```
 `getModelAssigner`函数的代码很简单，就是返回`vnode`上面名为`onUpdate:modelValue`的props回调函数。前面我们已经讲过了执行这个回调函数会同步更新v-model绑定的`msg`变量。
@@ -259,22 +259,22 @@ return isArray(fn) ? (value) => invokeArrayFns(fn, value) : fn;
 再来看第二部分代码：
 ```js
 const castToNumber =
-number || (vnode.props && vnode.props.type === "number");
+  number || (vnode.props && vnode.props.type === "number");
 ```
 `castToNumber`表示是否使用了`.number`修饰符，或者input输入框上面是否有`type=number`的属性。如果`castToNumber`的值为true，后续处理输入框的值时会将其转换成数字。
 ### 第三部分
 我们接着来看第三部分的代码：
 ```js
 addEventListener(el, lazy ? "change" : "input", (e) => {
-if (e.target.composing) return;
-let domValue = el.value;
-if (trim) {
-  domValue = domValue.trim();
-}
-if (castToNumber) {
-  domValue = looseToNumber(domValue);
-}
-el[assignKey](domValue);
+  if (e.target.composing) return;
+  let domValue = el.value;
+  if (trim) {
+    domValue = domValue.trim();
+  }
+  if (castToNumber) {
+    domValue = looseToNumber(domValue);
+  }
+  el[assignKey](domValue);
 });
 ```
 对input输入框进行事件监听，如果有`.lazy`修饰符就监听change事件，否则监听input事件。看看，这不就和`.lazy`修饰符的作用对上了嘛。`.lazy`修饰符的作用是在每次change事件触发时再去更新数据。

@@ -171,9 +171,21 @@ export default defineConfig({
     lastUpdated: {
       text: "最后更新于",
     },
+    footer: {
+      copyright: " ICP备案号：蜀ICP备2024091035号-1",
+    },
   },
   sitemap: {
     hostname: "https://vue-compiler.iamouyang.cn",
   },
   lastUpdated: true,
+  markdown: {
+    config(md) {
+      const defaultCodeInline = md.renderer.rules.code_inline!;
+      md.renderer.rules.code_inline = (tokens, idx, options, env, self) => {
+        tokens[idx].attrSet("v-pre", "");
+        return defaultCodeInline(tokens, idx, options, env, self);
+      };
+    },
+  },
 });

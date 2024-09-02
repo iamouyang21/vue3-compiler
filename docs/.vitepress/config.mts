@@ -3,7 +3,8 @@ import { defineConfig } from "vitepress";
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
   title: "Vue3 编译原理揭秘",
-  description: "通过 debug 的方式带你搞清楚 Vue3 中的编译黑魔法",
+  description: "Vue3源码解析",
+  lang: "zh-CN",
   ignoreDeadLinks: true,
   // head: [["link", { rel: "icon", href: "/logo.svg" } ]],
   // head设置
@@ -23,7 +24,32 @@ export default defineConfig({
       })();
     `,
     ],
+    [
+      "script",
+      {
+        async: "async",
+        src: "https://www.googletagmanager.com/gtag/js?id=G-PSFPPWCBHD",
+      },
+    ],
+    [
+      "script",
+      {},
+      `
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-PSFPPWCBHD');
+    `,
+    ],
     ["meta", { name: "baidu-site-verification", content: "codeva-phM5FSU2JM" }],
+    [
+      "meta",
+      {
+        name: "keywords",
+        content: "vue3源码、vue源码、vue3编译原理、vue3原理、vue原理",
+      },
+    ],
   ],
   themeConfig: {
     // https://vitepress.dev/reference/default-theme-config
@@ -187,5 +213,17 @@ export default defineConfig({
         return defaultCodeInline(tokens, idx, options, env, self);
       };
     },
+  },
+  transformPageData(pageData) {
+    const canonicalUrl =
+      `https://vue-compiler.iamouyang.cn/${pageData.relativePath}`
+        .replace(/index\.md$/, "")
+        .replace(/\.md$/, ".html");
+
+    pageData.frontmatter.head ??= [];
+    pageData.frontmatter.head.push([
+      "link",
+      { rel: "canonical", href: canonicalUrl },
+    ]);
   },
 });

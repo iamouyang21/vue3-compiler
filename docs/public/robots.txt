@@ -1,0 +1,3 @@
+Sitemap: https://vue-compiler.iamouyang.cn/sitemap.xml
+
+User-agent: *

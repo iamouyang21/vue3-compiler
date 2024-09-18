@@ -146,6 +146,11 @@ export default defineConfig({
             link: "/script/defineProps",
           },
           {
+            // Vue3.5中解构props，让父子组件通信更加丝滑
+            text: "响应式 Props 解构",
+            link: "/script/definePropsDestructure",
+          },
+          {
             // defineEmits宏是如何工作的？
             text: "defineEmits",
             link: "/script/defineEmits",

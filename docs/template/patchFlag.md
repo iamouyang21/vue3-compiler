@@ -453,7 +453,7 @@ function setElementText(el, text) {
 
   - 更新视图阶段会从block节点的`dynamicChildren`属性数组中拿到所有的动态节点，然后遍历这个数组将里面的动态节点进行靶向更新。
 
-如果使用了`v-for`或者`v-if`这种会改变html结构的指令，那么就不只有根节点是block节点了。`v-for`和`v-if`的节点都会生成block节点，此时的这些block节点就组成了一颗block节点树。如果小伙伴们对使用了`v-for`或者`v-if`是如何实现靶向更新感兴趣，可以参考本文的debug方式去探索。又或者在评论区留言，我会在后面的文章中安排上。
+如果使用了`v-for`或者`v-if`这种会改变html结构的指令，那么就不只有根节点是block节点了。`v-for`和`v-if`的节点都会生成block节点，此时的这些block节点就组成了一棵block节点树。如果小伙伴们对使用了`v-for`或者`v-if`是如何实现靶向更新感兴趣，可以参考本文的debug方式去探索。又或者在评论区留言，我会在后面的文章中安排上。
 
 在实验阶段的`Vue Vapor`中已经抛弃了虚拟DOM，更多关于`Vue Vapor`的内容可以查看我之前的文章： [没有虚拟DOM版本的vue（Vue Vapor）](https://mp.weixin.qq.com/s/SAWApng__kZOxsBvvjK0aQ)。根据vue团队成员[三咲智子](https://github.com/sxzz) 所透露未来将使用`<script vapor>`的方式去区分Vapor组件和目前的组件。
 ![vapor](../images/template/patchFlag/vapor.webp){data-zoomable}

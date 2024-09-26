@@ -19,6 +19,6 @@ features:
   - title: 全程 debug
     details: 跟着本书的 debug 步骤，你也将学会如何自己去 debug 源码
   - title: 超级详细
-    details: 超级详细，不漏过任何一个细节，而且内容还通熟易懂。
+    details: 超级详细，不漏过任何一个细节，而且内容还通俗易懂。
 ---
 

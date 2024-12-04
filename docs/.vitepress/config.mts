@@ -53,7 +53,13 @@ export default defineConfig({
   ],
   themeConfig: {
     // https://vitepress.dev/reference/default-theme-config
-    nav: [{ text: "本书交流群", link: "/guide/contact" }],
+    nav: [
+      { text: "本书交流群", link: "/guide/contact" },
+      {
+        text: "欧阳也在找工作，坐标成都求内推！！",
+        link: "/guide/contact",
+      },
+    ],
     search: {
       provider: "local",
     },

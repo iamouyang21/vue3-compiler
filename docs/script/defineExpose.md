@@ -85,7 +85,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
 _sfc_main.render = _sfc_render;
 export default _sfc_main;
 ```
-从上面可以看到`_sfc_main`对象中的`setup`对应的就是我们源代码`<script setup>`中的内容，并且`defineExpose`宏函数也不在了，变成了一个`__expose`方法（`defineExpose`宏函数如何编译成`__expose`方法我们会在下一篇文章讲）。如下图：
+从上面可以看到`_sfc_main`对象中的`setup`对应的就是我们源代码`<script setup>`中的内容，并且`defineExpose`宏函数也不在了，变成了一个`__expose`方法。如下图：
 ![convert](../images/script/defineExpose/convert.webp){data-zoomable}
 
 # `expose`方法

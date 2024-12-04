@@ -516,7 +516,7 @@ if (
 ) {
   returned += `get ${key}() { return ${key} }, `;
 }
-```js
+```
 if条件判断是：如果当前import导入不是从vue中，并且也不是import导入一个vue组件。那么就给return一个只拥有get的访问器属性，对应我们demo中的就是`import { format } from "./util.js"`中的`format`函数。
 
 我们再来看第二个else if判断，代码如下：

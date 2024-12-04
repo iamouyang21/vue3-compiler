@@ -324,7 +324,7 @@ function resolveScript(descriptor, options, ssr, customElement) {
 
 这里的 `options.compiler` 我们前面第一步的时候已经解释过了，`options.compiler` 对象实际就是 Vue 底层包 `vue/compiler-sfc` 暴露的对象，这里的 `options.compiler.compileScript()` 其实就是调用的 `vue/compiler-sfc` 包暴露出来的 `compileScript` 函数，同样也是一个 Vue 暴露出来的底层的 API。
 
-后面我们的分析 `defineOptions` 等文章时会去深入分析 `compileScript` 函数，这篇文章我们不会去读 `compileScript` 函数的源码。通过查看 `compileScript` 函数的输入和输出基本就可以搞清楚 `compileScript` 函数的作用。下面这个是 `compileScript` 函数的类型定义：
+后面我们的分析 `defineProps` 等文章时会去深入分析 `compileScript` 函数，这篇文章我们不会去读 `compileScript` 函数的源码。通过查看 `compileScript` 函数的输入和输出基本就可以搞清楚 `compileScript` 函数的作用。下面这个是 `compileScript` 函数的类型定义：
 
 ```js
 export function compileScript(

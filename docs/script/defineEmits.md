@@ -12,7 +12,6 @@
 <script>
 export default {
   name: "options-child",
-  emits: ["enlarge-text"],
   methods: {
     handleClick() {
       this.$emit("enlarge-text");
@@ -21,7 +20,7 @@ export default {
 };
 </script>
 ```
-使用`emits`选项声明了要抛出的事件"enlarge-text"，然后在点击按钮后调用`this.$emit`方法抛出`"enlarge-text"`事件。这里的this大家都知道是指向的当前组件的vue实例，所以`this.$emit`是调用的当前vue实例的`$emit`方法。**大家先记住vue2的选项式语法例子，后面我们讲`defineEmits`宏函数编译原理时会用。**
+这里的this大家都知道是指向的当前组件的vue实例，所以`this.$emit`是调用的当前vue实例的`$emit`方法。**大家先记住vue2的选项式语法例子，后面我们讲`defineEmits`宏函数编译原理时会用。**
 
 我们再来看看vue3的组合式语法的例子，`composition-child.vue`代码如下：
 ```vue
@@ -568,9 +567,6 @@ function createSetupContext(instance) {
 
   而第二个参数对象是在`setupStatefulComponent`函数中调用`createSetupContext`函数生成的`setupContext`对象。在`createSetupContext`函数中我们看到返回的`emit`属性其实就是一个箭头函数，当调用`defineEmits`函数返回的`emit`函数时就会调用这个箭头函数，在箭头函数中其实是调用vue实例上的`emit`方法。
 
-搞明白了上面两个问题我想你现在应该明白了为什么说**vue3的defineEmits 宏函数编译后其实就是vue2的选项式API**，`defineEmits`宏函数声明的事件经过编译后就变成了vue组件对象上的`emits`属性。
-
-`defineEmits`函数的返回值`emit`函数，其实就是在调用vue实例上的`emit`方法，这不就是我们在vue2的选项式API中声明事件和触发事件的样子吗。
 
 大部分看着高大上的黑魔法其实都是编译时做的事情，**vue3中的像`defineEmits`这样的宏函数经过编译后其实还是我们熟悉的vue2的选项式API。**
 

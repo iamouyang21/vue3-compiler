@@ -109,7 +109,7 @@ function createSetupContext(instance) {
 我们先来看看函数中的`instance`变量，我想你通过名字应该已经猜到了他就是当前vue实例对象。如下图：
 ![instance](../images/script/defineExpose/instance.webp){data-zoomable}
 
-在vue实例对象中有我们熟悉的data方法、directives和componens属性等。
+在vue实例对象中有我们熟悉的data方法、directives和components属性等。
 
 在`expose`函数内部做的事情也很简单，**将子组件需要暴露的属性或者方法组成的对象赋值给vue实例上的`exposed`属性。**
 # 父组件访问子组件的`validate`方法
